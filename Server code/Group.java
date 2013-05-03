@@ -1,32 +1,36 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 
 public class Group {
 
-	private enum Status{
-		Accepted, Pending, Declined;
-	}
-
 	int groupId;
-	String cafeName;  // name of the cafe
+	Cafe cafe;  // name of the cafe
 	String groupInitiator; // username
-	Map<String, Status> members;
+	List<String> attending;
+	List<String> pending;
+	List<String> declined;
 
-	public Group(int groupId, String cafeName, String instigator, String[] pendingMembers){
+	public Group(int groupId, Cafe cafe, String instigator, String[] pendingMembers){
 		this.groupId = groupId;
 		this.groupInitiator = instigator;
-		this.members = new HashMap<String, Status>();
+		this.attending = new ArrayList<String>();
+		this.pending = new ArrayList<String>();
+		this.declined = new ArrayList<String>();
 
 		// add initiator
-		this.members.put(instigator, Status.Accepted);
+		this.attending.add(instigator);
 
 		// add members
 		for(String s: pendingMembers){
-			this.members.put(s, Status.Pending);
+			this.pending.add(s);
 		}
+
+		this.cafe = cafe;
 	}
 
 	/**
@@ -37,10 +41,10 @@ public class Group {
 	 */
 	public boolean AcceptInvitation(String username){
 
-		Status memberStatus = members.get(username);
 
-		if(memberStatus != null && memberStatus == Status.Pending){
-			members.put(username, Status.Accepted);
+		if(pending.contains(username)){
+			attending.add(username);
+			pending.remove(username);
 			return true;
 		}
 
@@ -54,10 +58,15 @@ public class Group {
 	 */
 	public boolean DeclineInvitation(String username){
 
-		Status memberStatus = members.get(username);
+		if(pending.contains(username)){
+			declined.add(username);
+			pending.remove(username);
+			return true;
+		}
 
-		if(memberStatus != null && memberStatus != Status.Declined){
-			members.put(username, Status.Declined);
+		if(attending.contains(username)){
+			declined.add(username);
+			attending.remove(username);
 			return true;
 		}
 
@@ -72,14 +81,21 @@ public class Group {
 	 */
 	public boolean InviteNewMember(String username){
 
-		Status memberStatus = members.get(username);
+		if(!pending.contains(username) && !attending.contains(username)){
 
-		if(memberStatus == null){
-			members.put(username, Status.Pending);
+			if(declined.contains(username)){
+				declined.remove(username);
+			}
+
+			pending.add(username);
 			return true;
 		}
 
 		return false;
 	}
+
+
+
+
 
 }

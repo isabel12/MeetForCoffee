@@ -16,7 +16,7 @@ public class MeetForCoffeeServer {
 
 	private Map<String, Set<String>> friends;  // from username to Set<username>
 	private Map<String, Cafe> cafes; // from cafe name to Cafe
-	private Map<String, Integer> groupInvitations; //from username to GroupId
+	private Map<String, Set<Group>> groupInvitations; //from username to GroupId
 	private Map<String, Set<String>> friendInvitations; // from username to Set<username>
 	private Map<String, Set<String>> friendRequests;
 	private Map<Integer, Group> activeGroups; // groups
@@ -26,21 +26,20 @@ public class MeetForCoffeeServer {
 		this.users = new HashMap<String, User>();
 		this.friends = new HashMap<String, Set<String>>();
 		this.cafes = new HashMap<String, Cafe>();
-		this.groupInvitations = new HashMap<String, Integer>();
+		this.groupInvitations = new HashMap<String, Set<Group>>();
 		this.friendInvitations = new HashMap<String, Set<String>>();
 		this.friendRequests = new HashMap<String, Set<String>>();
 		this.activeGroups = new HashMap<Integer, Group>();
 	}
 
 
-	public boolean Register(String username){
+	public String Register(String username){
 		if(users.containsKey(username)){
-			return false;
+			return XMLWriter.RegisterResult(false);
 		}
 
 		users.put(username, new User(userId++, username, 0, 0));
-		return true;
-
+		return XMLWriter.RegisterResult(true);
 	}
 
 
@@ -56,7 +55,7 @@ public class MeetForCoffeeServer {
 
 			// check they aren't already a friend
 			if (friends.contains(toInvite))
-				return "Already a friend";
+				return XMLWriter.AddFriendResult("Already a friend", false);
 
 			// check not already invited
 			Set<String> invitations = friendInvitations.get(username);
@@ -64,7 +63,7 @@ public class MeetForCoffeeServer {
 				invitations = new HashSet<String>();
 			}
 			if(invitations.contains(toInvite)){
-				return "You have already invited them";
+				return XMLWriter.AddFriendResult("You have already invited " + toInvite + " as a friend", false);
 			}
 
 			// add to invite
@@ -79,34 +78,37 @@ public class MeetForCoffeeServer {
 			requests.add(username);
 			friendRequests.put(toInvite, requests);
 
-			return "Invited " + toInvite + " to be a friend";
+			return XMLWriter.AddFriendResult("Invited " + toInvite + " to be a friend", true);
 		} catch(Exception e){
-			return e.getMessage();
+			return XMLWriter.AddFriendResult(e.getMessage(), false);
 		}
 	}
+
 
 	// this method returns the friend invitations, meeting invitations
 	public String GetInvitationUpdates(String username){
 
 		Set<String> friendRequests = this.friendRequests.get(username);
+		Set<Group> groupRequests = this.groupInvitations.get(username);
 
-		// if no requests, return
+
+
+
 		if(friendRequests == null){
 			friendRequests = new HashSet<String>();
 			this.friendRequests.put(username, friendRequests);
 		}
-		if(friendRequests.size() == 0){
-			return "No friend requests.";
+
+
+		if(groupRequests == null){
+			groupRequests = new HashSet<Group>();
+			this.groupInvitations.put(username, groupRequests);
 		}
 
-		// make list of friend requests
-		String message = "Friend requests from: ";
-		for(String user: friendRequests){
-			message += user + ", ";
-		}
-		message = message.substring(0, message.length()-2);
 
-		return message;
+
+
+		return XMLWriter.GetInvitationUpdatesResult(friendRequests, groupRequests);
 	}
 
 	public void UpdateLocation(String username, double lat, double lon){
