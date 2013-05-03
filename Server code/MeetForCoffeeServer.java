@@ -21,6 +21,8 @@ public class MeetForCoffeeServer {
 	private Map<String, Set<String>> friendRequests;
 	private Map<Integer, Group> activeGroups; // groups
 
+	private Map<String, Location> locations;
+
 
 	public MeetForCoffeeServer(){
 		this.users = new HashMap<String, User>();
@@ -30,8 +32,8 @@ public class MeetForCoffeeServer {
 		this.friendInvitations = new HashMap<String, Set<String>>();
 		this.friendRequests = new HashMap<String, Set<String>>();
 		this.activeGroups = new HashMap<Integer, Group>();
+		this.locations = new HashMap<String, Location>();
 	}
-
 
 	public String Register(String username){
 		if(users.containsKey(username)){
@@ -91,38 +93,45 @@ public class MeetForCoffeeServer {
 		Set<String> friendRequests = this.friendRequests.get(username);
 		Set<Group> groupRequests = this.groupInvitations.get(username);
 
-
-
-
 		if(friendRequests == null){
 			friendRequests = new HashSet<String>();
 			this.friendRequests.put(username, friendRequests);
 		}
-
 
 		if(groupRequests == null){
 			groupRequests = new HashSet<Group>();
 			this.groupInvitations.put(username, groupRequests);
 		}
 
-
-
-
 		return XMLWriter.GetInvitationUpdatesResult(friendRequests, groupRequests);
 	}
 
+
 	public void UpdateLocation(String username, double lat, double lon){
-
-
-
+		locations.put(username, new Location(lat, lon));
 	}
-
 
 	public String GetAllFriendsLocations(String username){
 
-		return "todo";
+		Set<String> friends = this.friends.get(username);
 
+		if(friends == null){
+			friends = new HashSet<String>();
+			this.friends.put(username, friends);
+		}
 
+		Map<String, Location> friendLocations = new HashMap<String, Location>();
+		for(String friend: friends){
+			Location loc = this.locations.get(friend);
+			if(loc == null){
+				loc = new Location(0, 0);
+				this.locations.put(friend, loc);
+			}
+
+			friendLocations.put(friend, loc);
+		}
+
+		return XMLWriter.GetFriendsLocations(locations);
 	}
 
 
@@ -136,7 +145,6 @@ public class MeetForCoffeeServer {
 	public int InviteFriendToMeet(String username, String toInvite, String Location){
 
 		return -1;
-
 
 	}
 

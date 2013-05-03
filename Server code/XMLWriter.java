@@ -1,5 +1,6 @@
 
 import java.io.StringWriter;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.*;
@@ -37,24 +38,53 @@ public class XMLWriter {
 
 	public static String GetInvitationUpdatesResult(Set<String> friendRequests,
 			Set<Group> groupRequests) {
-		// TODO Auto-generated method stub
 
-		return null;
+		StringBuilder sb = new StringBuilder();
+		OpenTag(sb, "result");
+		OpenTag(sb, "friendRequests");
+		for(String f: friendRequests){
+			SimpleTag(sb, "member", f);
+		}
+		CloseTag(sb, "friendRequests");
+		OpenTag(sb, "groupInvitations");
+		for(Group g: groupRequests){
+			Group(sb, g);
+		}
+		CloseTag(sb, "groupInvitations");
+		CloseTag(sb, "result");
+
+		System.out.println(sb.toString());
+		return sb.toString();
 	}
 
 
 
-	private static String Group(StringBuilder sb, Group group){
+	public static String GetFriendsLocations(Map<String, Location> locations){
+
+		StringBuilder sb = new StringBuilder();
+
+		OpenTag(sb, "result");
+		for(String username: locations.keySet()){
+			OpenTag(sb, "member");
+			SimpleTag(sb, "username", username);
+			Location(sb, locations.get(username));
+			CloseTag(sb, "member");
+		}
+		CloseTag(sb, "result");
+
+		System.out.println(sb.toString());
+		return sb.toString();
+	}
+
+
+
+	private static void Group(StringBuilder sb, Group group){
 
 		OpenTag(sb, "group");
 
 		SimpleTag(sb, "id", group.groupId + "");
 
-		OpenTag(sb, "cafe");
-		SimpleTag(sb, "name", group.cafe.name);
-		SimpleTag(sb, "lat", group.cafe.lat + "");
-		SimpleTag(sb, "lon", group.cafe.lon + "");
-		CloseTag(sb, "cafe");
+		Cafe(sb, group.cafe);
 
 		OpenTag(sb, "organiser");
 		SimpleTag(sb, "member", group.groupInitiator);
@@ -79,15 +109,23 @@ public class XMLWriter {
 		CloseTag(sb, "declined");
 
 		CloseTag(sb, "group");
-
-		return sb.toString();
 	}
 
 
+	private static void Location(StringBuilder sb, Location location){
+		OpenTag(sb, "location");
+		SimpleTag(sb, "lat", location.getLat() + "");
+		SimpleTag(sb, "lon", location.getLon() + "");
+		CloseTag(sb, "location");
+	}
 
-
-
-
+	private static void Cafe(StringBuilder sb, Cafe cafe){
+		OpenTag(sb, "cafe");
+		SimpleTag(sb, "name", cafe.name);
+		SimpleTag(sb, "lat", cafe.lat + "");
+		SimpleTag(sb, "lon", cafe.lon + "");
+		CloseTag(sb, "cafe");
+	}
 
 	private static void OpenTag(StringBuilder sb, String tagName){
 		String tabs = "";
