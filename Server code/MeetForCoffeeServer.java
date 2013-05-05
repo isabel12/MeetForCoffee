@@ -57,7 +57,7 @@ public class MeetForCoffeeServer {
 
 			// check they aren't already a friend
 			if (friends.contains(toInvite))
-				return XMLWriter.AddFriendResult("Already a friend", false);
+				return XMLWriter.PerformActionResult("Already a friend", false);
 
 			// check not already invited
 			Set<String> invitations = friendInvitations.get(username);
@@ -65,7 +65,7 @@ public class MeetForCoffeeServer {
 				invitations = new HashSet<String>();
 			}
 			if(invitations.contains(toInvite)){
-				return XMLWriter.AddFriendResult("You have already invited " + toInvite + " as a friend", false);
+				return XMLWriter.PerformActionResult("You have already invited " + toInvite + " as a friend", false);
 			}
 
 			// add to invite
@@ -80,9 +80,9 @@ public class MeetForCoffeeServer {
 			requests.add(username);
 			friendRequests.put(toInvite, requests);
 
-			return XMLWriter.AddFriendResult("Invited " + toInvite + " to be a friend", true);
+			return XMLWriter.PerformActionResult("Invited " + toInvite + " to be a friend", true);
 		} catch(Exception e){
-			return XMLWriter.AddFriendResult(e.getMessage(), false);
+			return XMLWriter.PerformActionResult(e.getMessage(), false);
 		}
 	}
 
@@ -131,7 +131,7 @@ public class MeetForCoffeeServer {
 			friendLocations.put(friend, loc);
 		}
 
-		return XMLWriter.GetFriendsLocations(locations);
+		return XMLWriter.GetFriendsLocationsResult(locations);
 	}
 
 
@@ -144,6 +144,10 @@ public class MeetForCoffeeServer {
 	 */
 	public int InviteFriendToMeet(String username, String toInvite, String Location){
 
+
+
+
+
 		return -1;
 
 	}
@@ -154,19 +158,57 @@ public class MeetForCoffeeServer {
 	}
 
 	public String acceptFriendRequest(String username, String toAccept){
+
+		// get set of people wanting to be your friend
+		Set<String> myFriendRequests = friendRequests.get(username);
+		if(myFriendRequests == null){
+			myFriendRequests = new HashSet<String>();
+			friendRequests.put(username, myFriendRequests);
+		}
+
+
 		// check that you have been invited
+		if (myFriendRequests.contains(toAccept)){
+			return XMLWriter.PerformActionResult(String.format("There is no invitation from %s to be friends",toAccept), false);
+		}
 
+		// get friends lists
+		Set<String> myFriends = friends.get(username);
+		if(myFriends == null){
+			myFriends = new HashSet<String>();
+			friends.put(username, myFriends);
+		}
 
-		// set both to friends
+		Set<String> theirFriends = friends.get(toAccept);
+		if(theirFriends == null){
+			theirFriends = new HashSet<String>();
+			friends.put(toAccept, theirFriends);
+		}
+
+		// check not already friends
+		boolean youFriendsWithThem = myFriends.contains(toAccept);
+		boolean theyFriendsWithYou = theirFriends.contains(username);
+		if(youFriendsWithThem && theyFriendsWithYou){
+			return XMLWriter.PerformActionResult(String.format("You are already friends with %s",  toAccept), false);
+		} else if (myFriends.contains(toAccept) || theirFriends.contains(username)){
+			return XMLWriter.PerformActionResult(String.format("Invalid state.  %s is friends with you: %b, you are friends with %s: %b",toAccept, theyFriendsWithYou, toAccept, youFriendsWithThem),false );
+		}
+
+		// add to friends lists
+		myFriends.add(toAccept);
+		theirFriends.add(username);
+
 
 		// remove from friendInvitations
-
+		myFriendRequests.remove(toAccept);
 
 		// remove from friendRequests
+		boolean wasInvited = friendInvitations.get(toAccept).remove(username);
+		if(!wasInvited){
+			return XMLWriter.PerformActionResult(String.format("Invalid state. %s's invitation wasn't properly recorded", toAccept),false);
+		}
 
-		return "todo";
-
-
+		return XMLWriter.PerformActionResult(String.format("You are now friends with %s", toAccept ), true);
 	}
 
 

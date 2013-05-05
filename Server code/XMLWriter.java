@@ -9,7 +9,7 @@ public class XMLWriter {
 
 	private static int tabIndent;
 
-	public synchronized static String AddFriendResult(String message, Boolean success){
+	public synchronized static String PerformActionResult(String message, Boolean success){
 		tabIndent = 0;
 
 		StringBuilder sb = new StringBuilder();
@@ -59,7 +59,7 @@ public class XMLWriter {
 
 
 
-	public static String GetFriendsLocations(Map<String, Location> locations){
+	public static String GetFriendsLocationsResult(Map<String, Location> locations){
 
 		StringBuilder sb = new StringBuilder();
 
@@ -169,7 +169,7 @@ public class XMLWriter {
 
 	public static void main(String[] args){
 
-		System.out.println(AddFriendResult("yip, added", true));
+
 
 	}
 
