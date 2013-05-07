@@ -1,3 +1,9 @@
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -9,6 +15,9 @@ public class MeetForCoffeeServer {
 	int userId;
 	int groupId;
 	int cafeId;
+
+	// google places API
+	int radius = 3000;
 
 
 	//
@@ -25,6 +34,9 @@ public class MeetForCoffeeServer {
 
 
 	public MeetForCoffeeServer(){
+
+		ProxyConnection.ConnectToProxy();
+
 		this.users = new HashMap<String, User>();
 		this.friends = new HashMap<String, Set<String>>();
 		this.cafes = new HashMap<String, Cafe>();
@@ -142,7 +154,7 @@ public class MeetForCoffeeServer {
 	 * @param Location
 	 * @return
 	 */
-	public int InviteFriendToMeet(String username, String toInvite, String Location){
+	public int InviteFriendToMeet(String username, String toInvite, String CafeXML){
 
 
 
@@ -219,11 +231,47 @@ public class MeetForCoffeeServer {
 	}
 
 
-	public String GetCloseByCafes(){
+	public String GetCloseByCafes(String username){
 
-		return "todo";
+		//Location location = locations.get(username);
+
+		String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/xml?location=-33.8670522,151.1957362&radius=3000&types=cafe&sensor=false&key=AIzaSyDV4eTh94idJJGG5_mGWa9aB5fP6aphpu0";
+
+		String xmlResult = getXMLResult(url);
+
+
+		return xmlResult;
 
 	}
+
+
+	/**
+	 * Private method to read XML from a request.
+	 * @param urlToRead
+	 * @return
+	 */
+	public static String getXMLResult(String urlToRead) {
+		URL url;
+		URLConnection conn;
+		InputStream is;
+		BufferedReader rd;
+		String line;
+		String result = "";
+		try {
+			url = new URL(urlToRead);
+			conn = (URLConnection) url.openConnection();
+			is = conn.getInputStream();
+			rd = new BufferedReader(new InputStreamReader(is));
+			while ((line = rd.readLine()) != null) {
+				result += line;
+			}
+			rd.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
 
 
 
