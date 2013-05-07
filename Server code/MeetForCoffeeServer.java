@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -6,8 +7,14 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.helpers.DefaultHandler;
 
 
 public class MeetForCoffeeServer {
@@ -92,6 +99,15 @@ public class MeetForCoffeeServer {
 			requests.add(username);
 			friendRequests.put(toInvite, requests);
 
+			System.out.println("Friend invitations:");
+			for(String key: friendInvitations.keySet()){
+				System.out.println(key + " invited " + friendInvitations.get(key));
+			}
+			System.out.println("Friend requests:");
+			for(String key:friendRequests.keySet()){
+				System.out.println(friendRequests.get(key) + " really wants to be friends with " + key);
+			}
+
 			return XMLWriter.PerformActionResult("Invited " + toInvite + " to be a friend", true);
 		} catch(Exception e){
 			return XMLWriter.PerformActionResult(e.getMessage(), false);
@@ -171,32 +187,17 @@ public class MeetForCoffeeServer {
 
 	public String acceptFriendRequest(String username, String toAccept){
 
-		// get set of people wanting to be your friend
-		Set<String> myFriendRequests = friendRequests.get(username);
-		if(myFriendRequests == null){
-			myFriendRequests = new HashSet<String>();
-			friendRequests.put(username, myFriendRequests);
-		}
-
-
-		// check that you have been invited
-		if (myFriendRequests.contains(toAccept)){
-			return XMLWriter.PerformActionResult(String.format("There is no invitation from %s to be friends",toAccept), false);
-		}
-
 		// get friends lists
 		Set<String> myFriends = friends.get(username);
 		if(myFriends == null){
 			myFriends = new HashSet<String>();
 			friends.put(username, myFriends);
 		}
-
 		Set<String> theirFriends = friends.get(toAccept);
 		if(theirFriends == null){
 			theirFriends = new HashSet<String>();
 			friends.put(toAccept, theirFriends);
 		}
-
 		// check not already friends
 		boolean youFriendsWithThem = myFriends.contains(toAccept);
 		boolean theyFriendsWithYou = theirFriends.contains(username);
@@ -205,6 +206,19 @@ public class MeetForCoffeeServer {
 		} else if (myFriends.contains(toAccept) || theirFriends.contains(username)){
 			return XMLWriter.PerformActionResult(String.format("Invalid state.  %s is friends with you: %b, you are friends with %s: %b",toAccept, theyFriendsWithYou, toAccept, youFriendsWithThem),false );
 		}
+
+
+		// get set of people wanting to be your friend
+		Set<String> myFriendRequests = friendRequests.get(username);
+		if(myFriendRequests == null){
+			myFriendRequests = new HashSet<String>();
+			friendRequests.put(username, myFriendRequests);
+		}
+		// check that you have been invited
+		if (!myFriendRequests.contains(toAccept)){
+			return XMLWriter.PerformActionResult(String.format("There is no invitation from %s to be friends",toAccept), false);
+		}
+
 
 		// add to friends lists
 		myFriends.add(toAccept);
@@ -215,7 +229,13 @@ public class MeetForCoffeeServer {
 		myFriendRequests.remove(toAccept);
 
 		// remove from friendRequests
-		boolean wasInvited = friendInvitations.get(toAccept).remove(username);
+		System.out.println("Friend invitations: ");
+		for(String key: friendInvitations.keySet()){
+			System.out.println(key + " : " + friendInvitations.get(key));
+		}
+
+		Set<String> invitations = friendInvitations.get(toAccept);
+		boolean wasInvited = invitations != null && invitations.remove(username);
 		if(!wasInvited){
 			return XMLWriter.PerformActionResult(String.format("Invalid state. %s's invitation wasn't properly recorded", toAccept),false);
 		}
@@ -226,8 +246,23 @@ public class MeetForCoffeeServer {
 
 	public String GetGroupMembersLocations(String username, int groupID){
 
-		return "todo";
+		// get all members of group
+		List<String> members = this.activeGroups.get(groupID).attending;
 
+		// get map of friend to location
+		Map<String, Location> friendLocations = new HashMap<String, Location>();
+		for(String friend: members){
+			Location loc = this.locations.get(friend);
+			if(loc == null){
+				loc = new Location(0, 0);
+				this.locations.put(friend, loc);
+			}
+
+			friendLocations.put(friend, loc);
+		}
+
+		// return result in xml format
+		return XMLWriter.GetFriendsLocationsResult(locations);
 	}
 
 
@@ -238,13 +273,19 @@ public class MeetForCoffeeServer {
 		String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/xml?location=-33.8670522,151.1957362&radius=3000&types=cafe&sensor=false&key=AIzaSyDV4eTh94idJJGG5_mGWa9aB5fP6aphpu0";
 
 		String xmlResult = getXMLResult(url);
+		Map<String, Cafe> cafes = LoadCafes(xmlResult);
 
+		System.out.println("Loaded cafes: " + cafes.size());
 
 		return xmlResult;
-
 	}
 
 
+
+
+	//====================================================================
+	// Parsing methods
+	//====================================================================
 	/**
 	 * Private method to read XML from a request.
 	 * @param urlToRead
@@ -273,8 +314,39 @@ public class MeetForCoffeeServer {
 	}
 
 
+	public static Map<String, Cafe> LoadCafes(String xml){
+
+		InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
+		Map<String, Cafe> cafes = null;
+
+		try {
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			SAXParser saxParser = factory.newSAXParser();
+			XMLCafeHandler handler = new XMLCafeHandler();
+			saxParser.parse(inputStream, handler);
+			cafes = handler.getCafes();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// return the cafes
+		return cafes;
+	}
 
 
+	public static void main(String[] args){
+
+
+		MeetForCoffeeServer server = new MeetForCoffeeServer();
+
+		server.Register("bill");
+		server.Register("ben");
+		server.AddFriend("bill", "ben");
+		server.acceptFriendRequest("ben", "bill");
+
+
+
+	}
 
 
 }

@@ -15,14 +15,12 @@ public class XMLCafeHandler extends DefaultHandler{
 	private static final String ID = "id";
 	private static final String LAT = "lat";
 	private static final String LON = "lng";
-	private static final String DOCUMENT = "PlaceSearchResponse";
 
-
-	private Map<Integer, Cafe> cafes;
+	private Map<String, Cafe> cafes;
 	private Cafe currentCafe;
 	private StringBuilder builder;
 
-	public Map<Integer, Cafe> getCafes(){
+	public Map<String, Cafe> getCafes(){
 		return this.cafes;
 	}
 
@@ -37,17 +35,17 @@ public class XMLCafeHandler extends DefaultHandler{
 	public void endElement(String uri, String localName, String name)
 			throws SAXException {
 		super.endElement(uri, localName, name);
-		if (this.currentMessage != null){
-			if (localName.equalsIgnoreCase(TITLE)){
-				currentMessage.setTitle(builder.toString());
-			} else if (localName.equalsIgnoreCase(LINK)){
-				currentMessage.setLink(builder.toString());
-			} else if (localName.equalsIgnoreCase(DESCRIPTION)){
-				currentMessage.setDescription(builder.toString());
-			} else if (localName.equalsIgnoreCase(PUB_DATE)){
-				currentMessage.setDate(builder.toString());
+		if (this.currentCafe != null){
+			if (localName.equalsIgnoreCase(NAME)){
+				currentCafe.name = builder.toString();
+			} else if (localName.equalsIgnoreCase(ID)){
+				currentCafe.id = builder.toString();
+			} else if (localName.equalsIgnoreCase(LAT)){
+				currentCafe.lat = Double.parseDouble(builder.toString());
+			} else if (localName.equalsIgnoreCase(LON)){
+				currentCafe.lon = Double.parseDouble(builder.toString());
 			} else if (localName.equalsIgnoreCase(ITEM)){
-				messages.add(currentMessage);
+				cafes.put(currentCafe.id, currentCafe);
 			}
 			builder.setLength(0);
 		}
@@ -56,7 +54,7 @@ public class XMLCafeHandler extends DefaultHandler{
 	@Override
 	public void startDocument() throws SAXException {
 		super.startDocument();
-		cafes = new HashMap<Integer, Cafe>();
+		cafes = new HashMap<String, Cafe>();
 		builder = new StringBuilder();
 	}
 
