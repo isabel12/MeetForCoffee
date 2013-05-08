@@ -1,7 +1,8 @@
 import java.awt.Point;
+import java.io.Serializable;
 
 
-public class User {
+public class User implements Serializable {
 
 
 	private int id;

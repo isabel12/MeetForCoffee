@@ -1,5 +1,7 @@
+import java.io.Serializable;
 
-public class Cafe {
+
+public class Cafe implements Serializable {
 
 	public double lat;
 	public double lon;

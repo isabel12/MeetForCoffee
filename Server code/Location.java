@@ -1,5 +1,7 @@
+import java.io.Serializable;
 
-public class Location {
+
+public class Location implements Serializable{
 
 	private double lat;
 	private double lon;

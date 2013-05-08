@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class Group {
+public class Group implements Serializable{
 
 	int groupId;
 	Cafe cafe;  // name of the cafe

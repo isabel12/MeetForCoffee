@@ -1,10 +1,22 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,33 +38,149 @@ public class MeetForCoffeeServer {
 	// google places API
 	int radius = 3000;
 
+	// files
+	File usersFile;
+	File friendsFile;
+	File cafesFile;
+	File groupInvitationsFile;
+	File friendInvitationsFile;
+	File friendRequestsFile;
+	File activeGroupsFile;
+	File locationsFile;
 
-	//
-	private Map<String, User> users;
+	// filenames
+	String USERS_FILENAME = "users.txt";
+	String FRIENDS_FILENAME = "friends.txt";
+	String CAFES_FILENAME = "cafes.txt";
+	String GROUPINVITATIONS_FILENAME = "groupInvitations.txt";
+	String FRIENDINVITATIONS_FILENAME = "friendInvitations.txt";
+	String FRIENDREQUESTS_FILENAME = "friendRequests.txt";
+	String ACTIVEGROUPS_FILENAME = "activeGroups.txt";
+	String LOCATIONS_FILENAME = "locations.txt";
 
-	private Map<String, Set<String>> friends;  // from username to Set<username>
-	private Map<String, Cafe> cafes; // from cafe name to Cafe
-	private Map<String, Set<Group>> groupInvitations; //from username to GroupId
-	private Map<String, Set<String>> friendInvitations; // from username to Set<username>
-	private Map<String, Set<String>> friendRequests;
-	private Map<Integer, Group> activeGroups; // groups
-
-	private Map<String, Location> locations;
+	// collections
+	private Map<String, User> users = new HashMap<String, User>();
+	private Map<String, Set<String>> friends = new HashMap<String, Set<String>>();  // from username to Set<username>
+	private Map<String, Cafe> cafes = new HashMap<String, Cafe>(); // from cafe name to Cafe
+	private Map<String, Set<Group>> groupInvitations = new HashMap<String, Set<Group>>(); //from username to GroupId
+	private Map<String, Set<String>> friendInvitations = new HashMap<String, Set<String>>(); // from username to Set<username>
+	private Map<String, Set<String>> friendRequests = new HashMap<String, Set<String>>();
+	private Map<Integer, Group> activeGroups = new HashMap<Integer, Group>(); // groups
+	private Map<String, Location> locations = new HashMap<String, Location>();
 
 
 	public MeetForCoffeeServer(){
 
 		ProxyConnection.ConnectToProxy();
 
-		this.users = new HashMap<String, User>();
-		this.friends = new HashMap<String, Set<String>>();
-		this.cafes = new HashMap<String, Cafe>();
-		this.groupInvitations = new HashMap<String, Set<Group>>();
-		this.friendInvitations = new HashMap<String, Set<String>>();
-		this.friendRequests = new HashMap<String, Set<String>>();
-		this.activeGroups = new HashMap<Integer, Group>();
-		this.locations = new HashMap<String, Location>();
+		// check if files exist, if they don't, create
+		String currentFileName = "";
+		try {
+			// users
+			currentFileName = USERS_FILENAME;
+			usersFile =new File(currentFileName);
+			if(!usersFile.exists()){
+				usersFile.createNewFile();
+				WriteFile(currentFileName, usersFile, users);
+			}
+
+			// friends
+			currentFileName = FRIENDS_FILENAME;
+			friendsFile =new File(currentFileName);
+			if(!friendsFile.exists()){
+				friendsFile.createNewFile();
+				WriteFile(currentFileName, friendsFile, friends);
+			}
+
+			// cafes
+			currentFileName = CAFES_FILENAME;
+			cafesFile =new File(currentFileName);
+			if(!cafesFile.exists()){
+				cafesFile.createNewFile();
+				WriteFile(currentFileName, cafesFile, cafes);
+			}
+
+			// group invitations
+			currentFileName = GROUPINVITATIONS_FILENAME;
+			groupInvitationsFile =new File(currentFileName);
+			if(!groupInvitationsFile.exists()){
+				groupInvitationsFile.createNewFile();
+				WriteFile(currentFileName, groupInvitationsFile, groupInvitations);
+			}
+
+			// friend invitations
+			currentFileName = FRIENDINVITATIONS_FILENAME;
+			friendInvitationsFile =new File(currentFileName);
+			if(!friendInvitationsFile.exists()){
+				friendInvitationsFile.createNewFile();
+				WriteFile(currentFileName, friendInvitationsFile, friendInvitations);
+			}
+
+			// friend requests
+			currentFileName = FRIENDREQUESTS_FILENAME;
+			friendRequestsFile =new File(currentFileName);
+			if(!friendRequestsFile.exists()){
+				friendRequestsFile.createNewFile();
+				WriteFile(currentFileName, friendRequestsFile, friendRequests);
+			}
+
+			// active groups
+			currentFileName = ACTIVEGROUPS_FILENAME;
+			activeGroupsFile =new File(currentFileName);
+			if(!activeGroupsFile.exists()){
+				activeGroupsFile.createNewFile();
+				WriteFile(currentFileName, activeGroupsFile, activeGroups);
+			}
+
+			// locations
+			currentFileName = LOCATIONS_FILENAME;
+			locationsFile =new File(currentFileName);
+			if(!locationsFile.exists()){
+				locationsFile.createNewFile();
+				WriteFile(currentFileName, locationsFile, locations);
+			}
+		}
+		catch (IOException ex) {
+			System.out.println("Unable to open the file "+currentFileName);
+		}
+
+		// reload the previous state
+		this.users = ReadFile(USERS_FILENAME, usersFile);
+		System.out.println("Number of users: " + users.size());
+		this.friends = ReadFile(FRIENDS_FILENAME, friendsFile);
+		this.cafes = ReadFile(CAFES_FILENAME, cafesFile);
+		this.groupInvitations = ReadFile(GROUPINVITATIONS_FILENAME, groupInvitationsFile);
+		this.friendInvitations = ReadFile(FRIENDINVITATIONS_FILENAME, friendInvitationsFile);
+		this.friendRequests = ReadFile(FRIENDREQUESTS_FILENAME, friendRequestsFile);
+		this.activeGroups = ReadFile(ACTIVEGROUPS_FILENAME, activeGroupsFile);
+		this.locations = ReadFile(LOCATIONS_FILENAME, locationsFile);
 	}
+
+	//======================================================================================
+	// Server API methods
+	//======================================================================================
+	public void DropTables(){
+		users = new HashMap<String, User>();
+		friends = new HashMap<String, Set<String>>();  // from username to Set<username>
+		cafes = new HashMap<String, Cafe>(); // from cafe name to Cafe
+		groupInvitations = new HashMap<String, Set<Group>>(); //from username to GroupId
+		friendInvitations = new HashMap<String, Set<String>>(); // from username to Set<username>
+		friendRequests = new HashMap<String, Set<String>>();
+		activeGroups = new HashMap<Integer, Group>(); // groups
+		locations = new HashMap<String, Location>();
+
+		WriteFile(USERS_FILENAME, usersFile, users);
+		WriteFile(FRIENDS_FILENAME, friendsFile, friends);
+		WriteFile(CAFES_FILENAME, cafesFile, cafes);
+		WriteFile(GROUPINVITATIONS_FILENAME, groupInvitationsFile, groupInvitations);
+		WriteFile(FRIENDINVITATIONS_FILENAME, friendInvitationsFile, friendInvitations);
+		WriteFile(FRIENDREQUESTS_FILENAME, friendRequestsFile, friendRequests);
+		WriteFile(ACTIVEGROUPS_FILENAME, activeGroupsFile, activeGroups);
+		WriteFile(LOCATIONS_FILENAME, locationsFile, locations);
+
+		System.out.println("Reset all files");
+	}
+
 
 	public String Register(String username){
 		if(users.containsKey(username)){
@@ -60,58 +188,60 @@ public class MeetForCoffeeServer {
 		}
 
 		users.put(username, new User(userId++, username, 0, 0));
+		WriteFile(USERS_FILENAME, usersFile, this.users);
+
 		return XMLWriter.RegisterResult(true);
 	}
 
 
 	public String AddFriend(String username, String toInvite){
 
-		try{
-			// get current friends and initialise if doesn't exist
-			Set<String> friends = this.friends.get(username);
-			if(friends == null){
-				friends = new HashSet<String>();
-				this.friends.put(username, friends);
-			}
-
-			// check they aren't already a friend
-			if (friends.contains(toInvite))
-				return XMLWriter.PerformActionResult("Already a friend", false);
-
-			// check not already invited
-			Set<String> invitations = friendInvitations.get(username);
-			if(invitations == null){
-				invitations = new HashSet<String>();
-			}
-			if(invitations.contains(toInvite)){
-				return XMLWriter.PerformActionResult("You have already invited " + toInvite + " as a friend", false);
-			}
-
-			// add to invite
-			invitations.add(toInvite);
-			friendInvitations.put(username, invitations);
-
-			// add to request
-			Set<String> requests = friendRequests.get(toInvite);
-			if(requests == null){
-				requests = new HashSet<String>();
-			}
-			requests.add(username);
-			friendRequests.put(toInvite, requests);
-
-			System.out.println("Friend invitations:");
-			for(String key: friendInvitations.keySet()){
-				System.out.println(key + " invited " + friendInvitations.get(key));
-			}
-			System.out.println("Friend requests:");
-			for(String key:friendRequests.keySet()){
-				System.out.println(friendRequests.get(key) + " really wants to be friends with " + key);
-			}
-
-			return XMLWriter.PerformActionResult("Invited " + toInvite + " to be a friend", true);
-		} catch(Exception e){
-			return XMLWriter.PerformActionResult(e.getMessage(), false);
+		// get current friends and initialise if doesn't exist
+		Set<String> friends = this.friends.get(username);
+		if(friends == null){
+			friends = new HashSet<String>();
+			this.friends.put(username, friends);
 		}
+
+		// check they aren't already a friend
+		if (friends.contains(toInvite))
+			return XMLWriter.PerformActionResult("Already a friend", false);
+
+		// check not already invited
+		Set<String> invitations = friendInvitations.get(username);
+		if(invitations == null){
+			invitations = new HashSet<String>();
+		}
+		if(invitations.contains(toInvite)){
+			return XMLWriter.PerformActionResult("You have already invited " + toInvite + " as a friend", false);
+		}
+
+		// add to invite
+		invitations.add(toInvite);
+		friendInvitations.put(username, invitations);
+
+		// add to request
+		Set<String> requests = friendRequests.get(toInvite);
+		if(requests == null){
+			requests = new HashSet<String>();
+		}
+		requests.add(username);
+		friendRequests.put(toInvite, requests);
+
+		System.out.println("Friend invitations:");
+		for(String key: friendInvitations.keySet()){
+			System.out.println(key + " invited " + friendInvitations.get(key));
+		}
+		System.out.println("Friend requests:");
+		for(String key:friendRequests.keySet()){
+			System.out.println(friendRequests.get(key) + " really wants to be friends with " + key);
+		}
+
+		// write to file
+		WriteFile(FRIENDS_FILENAME, friendsFile, this.friends);
+
+		return XMLWriter.PerformActionResult("Invited " + toInvite + " to be a friend", true);
+
 	}
 
 
@@ -137,6 +267,7 @@ public class MeetForCoffeeServer {
 
 	public void UpdateLocation(String username, double lat, double lon){
 		locations.put(username, new Location(lat, lon));
+		WriteFile(LOCATIONS_FILENAME, locationsFile, locations);
 	}
 
 	public String GetAllFriendsLocations(String username){
@@ -171,9 +302,6 @@ public class MeetForCoffeeServer {
 	 * @return
 	 */
 	public int InviteFriendToMeet(String username, String toInvite, String CafeXML){
-
-
-
 
 
 		return -1;
@@ -219,7 +347,6 @@ public class MeetForCoffeeServer {
 			return XMLWriter.PerformActionResult(String.format("There is no invitation from %s to be friends",toAccept), false);
 		}
 
-
 		// add to friends lists
 		myFriends.add(toAccept);
 		theirFriends.add(username);
@@ -239,6 +366,10 @@ public class MeetForCoffeeServer {
 		if(!wasInvited){
 			return XMLWriter.PerformActionResult(String.format("Invalid state. %s's invitation wasn't properly recorded", toAccept),false);
 		}
+
+		WriteFile(FRIENDS_FILENAME, friendsFile, friends);
+		WriteFile(FRIENDINVITATIONS_FILENAME, friendInvitationsFile, friendInvitations);
+		WriteFile(FRIENDREQUESTS_FILENAME, friendRequestsFile, friendRequests);
 
 		return XMLWriter.PerformActionResult(String.format("You are now friends with %s", toAccept ), true);
 	}
@@ -332,6 +463,67 @@ public class MeetForCoffeeServer {
 		// return the cafes
 		return cafes;
 	}
+
+
+	//===============================================================================
+	// file saving and loading
+	//===============================================================================
+
+	private <key, value> void WriteFile (String filename, File f, Map<key, value> collectionToWrite){
+
+		try{
+			//use buffering
+			OutputStream file = new FileOutputStream(f);
+			OutputStream buffer = new BufferedOutputStream( file );
+			ObjectOutput output = new ObjectOutputStream( buffer );
+			try{
+				output.writeObject(collectionToWrite);
+				System.out.println("Successfully wrote " + filename + "to file.");
+			}
+			finally{
+				output.close();
+			}
+		}
+		catch(IOException ex){
+			System.out.println("Unable to write to " + filename);
+			System.out.println(ex);
+		}
+	}
+
+	private <key, value> Map<key, value> ReadFile(String filename, File f){
+
+		Map<key, value> map = null;
+		try{
+			//use buffering
+			InputStream file = new FileInputStream(f);
+			InputStream buffer = new BufferedInputStream( file );
+			ObjectInput input = new ObjectInputStream ( buffer );
+			Object readObject = null;
+
+			//deserialize the map
+			try{
+				readObject = input.readObject();
+			}
+			finally{
+				input.close();
+			}
+
+			//cast to the right type of object
+			map = (HashMap<key, value>)readObject;
+			System.out.println("Successfully read " + filename + "from file.");
+
+		}
+		catch(ClassNotFoundException ex){
+			System.out.println("Cannot perform input. Class not found.");
+		}
+		catch(IOException ex){
+			System.out.println("Cannot perform input.");
+		}
+
+		// return the answer
+		return map;
+	}
+
 
 
 	public static void main(String[] args){
