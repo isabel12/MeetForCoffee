@@ -8,7 +8,7 @@ import java.util.Set;
 
 
 public class Group implements Serializable{
-
+	
 	int groupId;
 	Cafe cafe;  // name of the cafe
 	String groupInitiator; // username

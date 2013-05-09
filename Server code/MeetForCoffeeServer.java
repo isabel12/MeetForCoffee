@@ -47,6 +47,7 @@ public class MeetForCoffeeServer {
 	File friendRequestsFile;
 	File activeGroupsFile;
 	File locationsFile;
+	File idsFile;
 
 	// filenames
 	String USERS_FILENAME = "users.txt";
@@ -57,6 +58,7 @@ public class MeetForCoffeeServer {
 	String FRIENDREQUESTS_FILENAME = "friendRequests.txt";
 	String ACTIVEGROUPS_FILENAME = "activeGroups.txt";
 	String LOCATIONS_FILENAME = "locations.txt";
+	String IDS_FILENAME = "ids.txt";
 
 	// collections
 	private Map<String, User> users = new HashMap<String, User>();
@@ -67,7 +69,7 @@ public class MeetForCoffeeServer {
 	private Map<String, Set<String>> friendRequests = new HashMap<String, Set<String>>();
 	private Map<Integer, Group> activeGroups = new HashMap<Integer, Group>(); // groups
 	private Map<String, Location> locations = new HashMap<String, Location>();
-
+	private Map<String, Integer> ids = new HashMap<String, Integer>(); // the next ids of the object types
 
 	public MeetForCoffeeServer(){
 
@@ -139,6 +141,14 @@ public class MeetForCoffeeServer {
 				locationsFile.createNewFile();
 				WriteFile(currentFileName, locationsFile, locations);
 			}
+			
+			currentFileName = IDS_FILENAME;
+			idsFile = new File(currentFileName);
+			if(!idsFile.exists()){
+				idsFile.createNewFile();
+				ids.put("Group", 0);
+				WriteFile(currentFileName, idsFile, ids);
+			}
 		}
 		catch (IOException ex) {
 			System.out.println("Unable to open the file "+currentFileName);
@@ -154,6 +164,7 @@ public class MeetForCoffeeServer {
 		this.friendRequests = ReadFile(FRIENDREQUESTS_FILENAME, friendRequestsFile);
 		this.activeGroups = ReadFile(ACTIVEGROUPS_FILENAME, activeGroupsFile);
 		this.locations = ReadFile(LOCATIONS_FILENAME, locationsFile);
+		this.ids = ReadFile(IDS_FILENAME, idsFile);
 	}
 
 	//======================================================================================
@@ -301,16 +312,50 @@ public class MeetForCoffeeServer {
 	 * @param Location
 	 * @return
 	 */
-	public int InviteFriendToMeet(String username, String toInvite, String CafeXML){
+	public String InviteFriendToMeet(String username, String toInvite, String CafeXML){
 
-
-		return -1;
-
+		// make sure you don't already own a group
+		for(Group g: activeGroups.values()){
+			if (g.groupInitiator.equals(username)){
+				return XMLWriter.PerformActionResult("You already have an active group: " + g.groupId, false);
+			}
+		}
+		
+		// make sure you are friends
+		if(!friends.get(username).contains(toInvite) || !friends.get(toInvite).contains(username)){
+			return XMLWriter.PerformActionResult("You are not friends with " + toInvite, false);
+		}
+		
+		// get the cafe
+		Cafe cafe = LoadCafe(CafeXML);
+		
+		// create an active group  
+		Group newGroup = new Group(GetId("Group"), cafe, username, new String[]{toInvite});
+		activeGroups.put(newGroup.groupId, newGroup);
+		
+		// tell the guest they are invited
+		Set<Group> invites = groupInvitations.get(toInvite);
+		if(invites == null){
+			invites = new HashSet<Group>();
+			groupInvitations.put(toInvite, invites);
+		}
+		invites.add(newGroup);
+		
+		WriteFile(ACTIVEGROUPS_FILENAME,activeGroupsFile, activeGroups);
+		
+		// return result
+		return XMLWriter.CreateGroupResult(newGroup.groupId);
 	}
 
 
 	public void acceptGroupInvitation(String username, int groupID){
+		
+		
+	}
+	
+	public String CancelGroup(String username, int groupID){
 
+		
 	}
 
 	public String acceptFriendRequest(String username, String toAccept){
@@ -335,7 +380,6 @@ public class MeetForCoffeeServer {
 			return XMLWriter.PerformActionResult(String.format("Invalid state.  %s is friends with you: %b, you are friends with %s: %b",toAccept, theyFriendsWithYou, toAccept, youFriendsWithThem),false );
 		}
 
-
 		// get set of people wanting to be your friend
 		Set<String> myFriendRequests = friendRequests.get(username);
 		if(myFriendRequests == null){
@@ -351,16 +395,10 @@ public class MeetForCoffeeServer {
 		myFriends.add(toAccept);
 		theirFriends.add(username);
 
-
 		// remove from friendInvitations
 		myFriendRequests.remove(toAccept);
 
 		// remove from friendRequests
-		System.out.println("Friend invitations: ");
-		for(String key: friendInvitations.keySet()){
-			System.out.println(key + " : " + friendInvitations.get(key));
-		}
-
 		Set<String> invitations = friendInvitations.get(toAccept);
 		boolean wasInvited = invitations != null && invitations.remove(username);
 		if(!wasInvited){
@@ -407,12 +445,28 @@ public class MeetForCoffeeServer {
 		Map<String, Cafe> cafes = LoadCafes(xmlResult);
 
 		System.out.println("Loaded cafes: " + cafes.size());
-
-		return xmlResult;
+		return XMLWriter.GetCafesResult(cafes.values());
 	}
 
 
-
+	/**
+	 * Gets and increments the id for the given object type.
+	 * @param objectType.  Eg. 'Group'
+	 * @return
+	 */
+	private int GetId(String objectType){
+		Integer id = ids.get(objectType);
+		
+		if(id == null)
+			throw new IllegalArgumentException("No entry for the given object type: " + objectType);
+		
+		ids.put(objectType, ++id);	
+		
+		WriteFile(IDS_FILENAME, idsFile, ids);
+		return id;		
+	}
+	
+	
 
 	//====================================================================
 	// Parsing methods
@@ -422,7 +476,7 @@ public class MeetForCoffeeServer {
 	 * @param urlToRead
 	 * @return
 	 */
-	public static String getXMLResult(String urlToRead) {
+	private static String getXMLResult(String urlToRead) {
 		URL url;
 		URLConnection conn;
 		InputStream is;
@@ -445,7 +499,7 @@ public class MeetForCoffeeServer {
 	}
 
 
-	public static Map<String, Cafe> LoadCafes(String xml){
+	private static Map<String, Cafe> LoadCafes(String xml){
 
 		InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
 		Map<String, Cafe> cafes = null;
@@ -462,6 +516,25 @@ public class MeetForCoffeeServer {
 
 		// return the cafes
 		return cafes;
+	}
+	
+	private static Cafe LoadCafe(String xml){
+
+		InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
+		Cafe cafe = null;
+
+		try {
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			SAXParser saxParser = factory.newSAXParser();
+			XMLCafeHandler handler = new XMLCafeHandler();
+			saxParser.parse(inputStream, handler);
+			cafe = handler.getCafe();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// return the cafes
+		return cafe;
 	}
 
 
@@ -535,9 +608,9 @@ public class MeetForCoffeeServer {
 		server.Register("ben");
 		server.AddFriend("bill", "ben");
 		server.acceptFriendRequest("ben", "bill");
-
-
-
+		server.InviteFriendToMeet("bill", "ben", "some cafe");
+		
+		server.GetCloseByCafes("blah");
 	}
 
 

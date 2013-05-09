@@ -5,6 +5,8 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +43,7 @@ public class XMLWriter {
 		return sb.toString();
 	}
 
-	public static String GetInvitationUpdatesResult(Set<String> friendRequests,
+	public synchronized static String GetInvitationUpdatesResult(Set<String> friendRequests,
 			Set<Group> groupRequests) {
 
 		StringBuilder sb = new StringBuilder();
@@ -63,8 +65,19 @@ public class XMLWriter {
 	}
 
 
+	public synchronized static String CreateGroupResult(int groupId){
+		StringBuilder sb = new StringBuilder();
+		OpenTag(sb, "result");
+		
+		SimpleTag(sb, "success", true + "");
+		SimpleTag(sb, "groupId", groupId + "");
+		
+		CloseTag(sb, "result");
+		System.out.println(sb.toString());
+		return sb.toString();
+	}
 
-	public static String GetFriendsLocationsResult(Map<String, Location> locations){
+	public synchronized static String GetFriendsLocationsResult(Map<String, Location> locations){
 
 		StringBuilder sb = new StringBuilder();
 
@@ -81,7 +94,21 @@ public class XMLWriter {
 		return sb.toString();
 	}
 
+	public synchronized static String GetCafesResult(Collection<Cafe> cafes){
+		StringBuilder sb = new StringBuilder();
 
+		OpenTag(sb, "result");
+		SimpleTag(sb, "success", true + "");
+		for(Cafe c: cafes){
+			Cafe(sb, c);
+		}
+		CloseTag(sb, "result");
+
+		System.out.println(sb.toString());
+		return sb.toString();	
+	}
+	
+	
 
 	private static void Group(StringBuilder sb, Group group){
 
@@ -127,6 +154,7 @@ public class XMLWriter {
 	private static void Cafe(StringBuilder sb, Cafe cafe){
 		OpenTag(sb, "cafe");
 		SimpleTag(sb, "name", cafe.name);
+		SimpleTag(sb, "id", cafe.id);
 		SimpleTag(sb, "lat", cafe.lat + "");
 		SimpleTag(sb, "lon", cafe.lon + "");
 		CloseTag(sb, "cafe");

@@ -23,6 +23,10 @@ public class XMLCafeHandler extends DefaultHandler{
 	public Map<String, Cafe> getCafes(){
 		return this.cafes;
 	}
+	
+	public Cafe getCafe(){
+		return currentCafe;
+	}
 
 	@Override
 	public void characters(char[] ch, int start, int length)
@@ -36,15 +40,15 @@ public class XMLCafeHandler extends DefaultHandler{
 			throws SAXException {
 		super.endElement(uri, localName, name);
 		if (this.currentCafe != null){
-			if (localName.equalsIgnoreCase(NAME)){
+			if (name.equalsIgnoreCase(NAME)){
 				currentCafe.name = builder.toString();
-			} else if (localName.equalsIgnoreCase(ID)){
+			} else if (name.equalsIgnoreCase(ID)){
 				currentCafe.id = builder.toString();
-			} else if (localName.equalsIgnoreCase(LAT)){
+			} else if (name.equalsIgnoreCase(LAT)){
 				currentCafe.lat = Double.parseDouble(builder.toString());
-			} else if (localName.equalsIgnoreCase(LON)){
+			} else if (name.equalsIgnoreCase(LON)){
 				currentCafe.lon = Double.parseDouble(builder.toString());
-			} else if (localName.equalsIgnoreCase(ITEM)){
+			} else if (name.equalsIgnoreCase(ITEM)){
 				cafes.put(currentCafe.id, currentCafe);
 			}
 			builder.setLength(0);
@@ -62,7 +66,7 @@ public class XMLCafeHandler extends DefaultHandler{
 	public void startElement(String uri, String localName, String name,
 			Attributes attributes) throws SAXException {
 		super.startElement(uri, localName, name, attributes);
-		if (localName.equalsIgnoreCase(ITEM)){
+		if (name.equalsIgnoreCase(ITEM)){
 			this.currentCafe = new Cafe();
 		}
 	}
