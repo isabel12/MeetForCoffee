@@ -355,9 +355,21 @@ public class MeetForCoffeeServer {
 	
 	public String CancelGroup(String username, int groupID){
 
+		Group group = activeGroups.get(groupID);
+		if(group == null){
+			return XMLWriter.PerformActionResult("Group could not be found", false);
+		}
 		
+		if(!group.groupInitiator.equals(username)){
+			return XMLWriter.PerformActionResult("You are not the group organiser", false);
+		}
+		
+		activeGroups.remove(groupID);
+		
+		return XMLWriter.PerformActionResult("Group cancelled", true);
 	}
-
+		
+	
 	public String acceptFriendRequest(String username, String toAccept){
 
 		// get friends lists
