@@ -141,7 +141,7 @@ public class MeetForCoffeeServer {
 				locationsFile.createNewFile();
 				WriteFile(currentFileName, locationsFile, locations);
 			}
-			
+
 			currentFileName = IDS_FILENAME;
 			idsFile = new File(currentFileName);
 			if(!idsFile.exists()){
@@ -171,25 +171,55 @@ public class MeetForCoffeeServer {
 	// Server API methods
 	//======================================================================================
 	public void DropTables(){
-		users = new HashMap<String, User>();
-		friends = new HashMap<String, Set<String>>();  // from username to Set<username>
-		cafes = new HashMap<String, Cafe>(); // from cafe name to Cafe
-		groupInvitations = new HashMap<String, Set<Group>>(); //from username to GroupId
-		friendInvitations = new HashMap<String, Set<String>>(); // from username to Set<username>
-		friendRequests = new HashMap<String, Set<String>>();
-		activeGroups = new HashMap<Integer, Group>(); // groups
-		locations = new HashMap<String, Location>();
 
-		WriteFile(USERS_FILENAME, usersFile, users);
-		WriteFile(FRIENDS_FILENAME, friendsFile, friends);
-		WriteFile(CAFES_FILENAME, cafesFile, cafes);
-		WriteFile(GROUPINVITATIONS_FILENAME, groupInvitationsFile, groupInvitations);
-		WriteFile(FRIENDINVITATIONS_FILENAME, friendInvitationsFile, friendInvitations);
-		WriteFile(FRIENDREQUESTS_FILENAME, friendRequestsFile, friendRequests);
-		WriteFile(ACTIVEGROUPS_FILENAME, activeGroupsFile, activeGroups);
-		WriteFile(LOCATIONS_FILENAME, locationsFile, locations);
+		if(usersFile.delete()){
+			System.out.println(USERS_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}
 
-		System.out.println("Reset all files");
+		if(friendsFile.delete()){
+			System.out.println(FRIENDS_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}
+
+		if(cafesFile.delete()){
+			System.out.println(CAFES_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}
+
+		if(groupInvitationsFile.delete()){
+			System.out.println(GROUPINVITATIONS_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}
+
+		if(friendInvitationsFile.delete()){
+			System.out.println(FRIENDINVITATIONS_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}
+
+		if(friendRequestsFile.delete()){
+			System.out.println(FRIENDREQUESTS_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}
+
+		if(activeGroupsFile.delete()){
+			System.out.println(ACTIVEGROUPS_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}
+
+		if(locationsFile.delete()){
+			System.out.println(LOCATIONS_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}
+
 	}
 
 
@@ -250,6 +280,9 @@ public class MeetForCoffeeServer {
 
 		// write to file
 		WriteFile(FRIENDS_FILENAME, friendsFile, this.friends);
+		WriteFile(FRIENDREQUESTS_FILENAME, friendRequestsFile, this.friendRequests);
+		WriteFile(FRIENDINVITATIONS_FILENAME, friendInvitationsFile, this.friendInvitations);
+
 
 		return XMLWriter.PerformActionResult("Invited " + toInvite + " to be a friend", true);
 
@@ -320,19 +353,19 @@ public class MeetForCoffeeServer {
 				return XMLWriter.PerformActionResult("You already have an active group: " + g.groupId, false);
 			}
 		}
-		
+
 		// make sure you are friends
 		if(!friends.get(username).contains(toInvite) || !friends.get(toInvite).contains(username)){
 			return XMLWriter.PerformActionResult("You are not friends with " + toInvite, false);
 		}
-		
+
 		// get the cafe
-		Cafe cafe = LoadCafe(CafeXML);
-		
-		// create an active group  
+		Cafe cafe = new Cafe(); //LoadCafe(CafeXML);
+
+		// create an active group
 		Group newGroup = new Group(GetId("Group"), cafe, username, new String[]{toInvite});
 		activeGroups.put(newGroup.groupId, newGroup);
-		
+
 		// tell the guest they are invited
 		Set<Group> invites = groupInvitations.get(toInvite);
 		if(invites == null){
@@ -340,36 +373,68 @@ public class MeetForCoffeeServer {
 			groupInvitations.put(toInvite, invites);
 		}
 		invites.add(newGroup);
-		
+
 		WriteFile(ACTIVEGROUPS_FILENAME,activeGroupsFile, activeGroups);
-		
+		WriteFile(GROUPINVITATIONS_FILENAME, groupInvitationsFile, groupInvitations);
+
 		// return result
 		return XMLWriter.CreateGroupResult(newGroup.groupId);
 	}
 
 
-	public void acceptGroupInvitation(String username, int groupID){
-		
-		
+	public String acceptGroupInvitation(String username, int groupID){
+		// make sure you have been invited
+
+		Group g = activeGroups.get(groupId);
+		if (g == null)
+			return XMLWriter.PerformActionResult("No active group with that id: " + groupID, false);
+
+
+		// if you are the organiser
+		if(g.groupInitiator.equals(username))
+			return XMLWriter.PerformActionResult("You are the organiser of this group.  You are already attending.", false);
+
+
+		// if you have already accepted
+		if(g.attending.contains(username))
+			return XMLWriter.PerformActionResult("You are already attending.", false);
+
+		// if you are in pending
+		if (g.pending.contains(username)){
+			g.pending.remove(username);
+			g.attending.add(username);
+			return XMLWriter.PerformActionResult("You are now attending group " + groupID, true);
+		}
+
+		// if you are in declined
+		if (g.declined.contains(username)){
+			g.declined.remove(username);
+			g.attending.add(username);
+			return XMLWriter.PerformActionResult("You are now attending group " + groupID, true);
+		}
+
+		// if none of these, you weren't invited
+		return XMLWriter.PerformActionResult("You haven't been invited to join this group: " + groupID, false);
+
 	}
-	
+
 	public String CancelGroup(String username, int groupID){
 
 		Group group = activeGroups.get(groupID);
 		if(group == null){
 			return XMLWriter.PerformActionResult("Group could not be found", false);
 		}
-		
+
 		if(!group.groupInitiator.equals(username)){
 			return XMLWriter.PerformActionResult("You are not the group organiser", false);
 		}
-		
+
 		activeGroups.remove(groupID);
-		
+
 		return XMLWriter.PerformActionResult("Group cancelled", true);
 	}
-		
-	
+
+
 	public String acceptFriendRequest(String username, String toAccept){
 
 		// get friends lists
@@ -468,17 +533,17 @@ public class MeetForCoffeeServer {
 	 */
 	private int GetId(String objectType){
 		Integer id = ids.get(objectType);
-		
+
 		if(id == null)
 			throw new IllegalArgumentException("No entry for the given object type: " + objectType);
-		
-		ids.put(objectType, ++id);	
-		
+
+		ids.put(objectType, ++id);
+
 		WriteFile(IDS_FILENAME, idsFile, ids);
-		return id;		
+		return id;
 	}
-	
-	
+
+
 
 	//====================================================================
 	// Parsing methods
@@ -529,7 +594,7 @@ public class MeetForCoffeeServer {
 		// return the cafes
 		return cafes;
 	}
-	
+
 	private static Cafe LoadCafe(String xml){
 
 		InputStream inputStream = new ByteArrayInputStream(xml.getBytes());
@@ -621,7 +686,7 @@ public class MeetForCoffeeServer {
 		server.AddFriend("bill", "ben");
 		server.acceptFriendRequest("ben", "bill");
 		server.InviteFriendToMeet("bill", "ben", "some cafe");
-		
+
 		server.GetCloseByCafes("blah");
 	}
 
