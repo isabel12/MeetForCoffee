@@ -230,9 +230,20 @@ public class MeetForCoffeeServer {
 			System.out.println("Delete operation is failed.");
 		}	
 	}
-
-
+	
+	
+	public void AddTestData(){
+		Register("bill");
+		Register("ben");
+		AddFriend("bill", "ben");
+		AcceptFriendRequest("ben", "bill");
+		UpdateLocation("ben", -41.288610, 174.768405); // kirk
+		UpdateLocation("bill", -41.292112, 174.766432);// fairly
+	}
+		
+	
 	public String Register(String username){
+		System.out.println(String.format("Register(%s)", username));
 		if(users.containsKey(username)){
 			return XMLWriter.RegisterResult(false);
 		}
@@ -243,8 +254,8 @@ public class MeetForCoffeeServer {
 		return XMLWriter.RegisterResult(true);
 	}
 
-
 	public String AddFriend(String username, String toInvite){
+		System.out.println(String.format("AddFriend(%s, %s)", username, toInvite));
 
 		// get current friends and initialise if doesn't exist
 		Set<String> friends = this.friends.get(username);
@@ -292,15 +303,14 @@ public class MeetForCoffeeServer {
 		WriteFile(FRIENDREQUESTS_FILENAME, friendRequestsFile, this.friendRequests);
 		WriteFile(FRIENDINVITATIONS_FILENAME, friendInvitationsFile, this.friendInvitations);
 
-
 		return XMLWriter.PerformActionResult("Invited " + toInvite + " to be a friend", true);
-
 	}
 
 
 	// this method returns the friend invitations, meeting invitations
 	public String GetInvitationUpdates(String username){
-
+		System.out.println(String.format("GetInvitationUpdates(%s)", username));
+		
 		Set<String> friendRequests = this.friendRequests.get(username);
 		Set<Group> groupRequests = this.groupInvitations.get(username);
 
@@ -319,11 +329,13 @@ public class MeetForCoffeeServer {
 
 
 	public void UpdateLocation(String username, double lat, double lon){
+		System.out.println(String.format("UpdateLocation(%s, %f, %f)", username, lat, lon));
 		locations.put(username, new Location(lat, lon));
 		WriteFile(LOCATIONS_FILENAME, locationsFile, locations);
 	}
 
 	public String GetAllFriendsLocations(String username){
+		System.out.println(String.format("GetAllFriendsLocations(%s)", username));
 
 		Set<String> friends = this.friends.get(username);
 
@@ -356,6 +368,8 @@ public class MeetForCoffeeServer {
 	 */
 	public String InviteFriendToMeet(String username, String toInvite, String CafeXML){
 
+		System.out.println(String.format("InviteFriendToMeet(%s, %s, %s)", username, toInvite, CafeXML));
+		
 		// make sure you don't already own a group
 		for(Group g: activeGroups.values()){
 			if (g.groupInitiator.equals(username)){
@@ -391,8 +405,8 @@ public class MeetForCoffeeServer {
 	}
 
 
-	public String acceptGroupInvitation(String username, int groupID){
-		// make sure you have been invited
+	public String AcceptGroupInvitation(String username, int groupID){
+		System.out.println(String.format("AcceptGroupInvitation(%s, %d)", username, groupID));
 
 		Group g = activeGroups.get(groupID);
 		if (g == null)
@@ -428,6 +442,7 @@ public class MeetForCoffeeServer {
 	}
 
 	public String CancelGroup(String username, int groupID){
+		System.out.println(String.format("CancelGroup(%s, %d)", username, groupID));
 
 		Group group = activeGroups.get(groupID);
 		if(group == null){
@@ -444,7 +459,8 @@ public class MeetForCoffeeServer {
 	}
 
 
-	public String acceptFriendRequest(String username, String toAccept){
+	public String AcceptFriendRequest(String username, String toAccept){
+		System.out.println(String.format("AcceptFriendRequest(%s, %s)", username, toAccept));
 
 		// get friends lists
 		Set<String> myFriends = friends.get(username);
@@ -500,6 +516,7 @@ public class MeetForCoffeeServer {
 
 
 	public String GetGroupMembersLocations(String username, int groupID){
+		System.out.println(String.format("GetGroupMembersLocations(%s, %d)", username, groupID));
 
 		// get all members of group
 		List<String> members = this.activeGroups.get(groupID).attending;
@@ -522,10 +539,18 @@ public class MeetForCoffeeServer {
 
 
 	public String GetCloseByCafes(String username){
+		System.out.println(String.format("GetCloseByCafes(%s)", username));
+		System.out.println("Still need to fix this method");
+		
+		Location location = locations.get(username);
+		if(!users.containsKey(username)){
+			return XMLWriter.PerformActionResult("No account exists for: " + username, false);
+		}	
+		if (location.getLat() == 0.0 && location.getLon() == 0.0){
+			return XMLWriter.PerformActionResult("You don't have a location yet. ", false);
+		}
 
-		//Location location = locations.get(username);
-
-		String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/xml?location=-33.8670522,151.1957362&radius=3000&types=cafe&sensor=false&key=AIzaSyDV4eTh94idJJGG5_mGWa9aB5fP6aphpu0";
+		String url = String.format("https://maps.googleapis.com/maps/api/place/nearbysearch/xml?location=%f,%f&radius=1000&types=cafe&sensor=false&key=AIzaSyDV4eTh94idJJGG5_mGWa9aB5fP6aphpu0", location.getLat(), location.getLon());
 
 		String xmlResult = getXMLResult(url);
 		Map<String, Cafe> cafes = LoadCafes(xmlResult);
@@ -534,7 +559,10 @@ public class MeetForCoffeeServer {
 		return XMLWriter.GetCafesResult(cafes.values());
 	}
 
-
+	//====================================================================
+	// Parsing methods
+	//====================================================================
+	
 	/**
 	 * Gets and increments the id for the given object type.
 	 * @param objectType.  Eg. 'Group'
@@ -551,12 +579,8 @@ public class MeetForCoffeeServer {
 		WriteFile(IDS_FILENAME, idsFile, ids);
 		return id;
 	}
-
-
-
-	//====================================================================
-	// Parsing methods
-	//====================================================================
+	
+	
 	/**
 	 * Private method to read XML from a request.
 	 * @param urlToRead
@@ -693,14 +717,15 @@ public class MeetForCoffeeServer {
 		server.Register("bill");
 		server.Register("ben");
 		server.AddFriend("bill", "ben");
-		server.acceptFriendRequest("ben", "bill");
+		server.AcceptFriendRequest("ben", "bill");
 		server.InviteFriendToMeet("bill", "ben", "some cafe");
-		server.acceptGroupInvitation("ben", 1);
+		server.AcceptGroupInvitation("ben", 1);
 		
-		server.UpdateLocation("ben", 12.5, 14.34);
+		server.UpdateLocation("ben", -41.288610, 174.768405); // kirk
+		server.UpdateLocation("bill", -41.292112, 174.766432);// fairly
 		server.GetAllFriendsLocations("ben");
 		server.GetAllFriendsLocations("bill");
-		server.GetCloseByCafes("blah");
+		server.GetCloseByCafes("ben");
 		server.DropTables();
 	}
 
