@@ -224,6 +224,11 @@ public class MeetForCoffeeServer {
 			System.out.println("Delete operation is failed.");
 		}
 
+		if(idsFile.delete()){
+			System.out.println(IDS_FILENAME + " is deleted!");
+		}else{
+			System.out.println("Delete operation is failed.");
+		}	
 	}
 
 
@@ -338,7 +343,7 @@ public class MeetForCoffeeServer {
 			friendLocations.put(friend, loc);
 		}
 
-		return XMLWriter.GetFriendsLocationsResult(locations);
+		return XMLWriter.GetFriendsLocationsResult(friendLocations);
 	}
 
 
@@ -389,7 +394,7 @@ public class MeetForCoffeeServer {
 	public String acceptGroupInvitation(String username, int groupID){
 		// make sure you have been invited
 
-		Group g = activeGroups.get(groupId);
+		Group g = activeGroups.get(groupID);
 		if (g == null)
 			return XMLWriter.PerformActionResult("No active group with that id: " + groupID, false);
 
@@ -690,8 +695,13 @@ public class MeetForCoffeeServer {
 		server.AddFriend("bill", "ben");
 		server.acceptFriendRequest("ben", "bill");
 		server.InviteFriendToMeet("bill", "ben", "some cafe");
-
+		server.acceptGroupInvitation("ben", 1);
+		
+		server.UpdateLocation("ben", 12.5, 14.34);
+		server.GetAllFriendsLocations("ben");
+		server.GetAllFriendsLocations("bill");
 		server.GetCloseByCafes("blah");
+		server.DropTables();
 	}
 
 
