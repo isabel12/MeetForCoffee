@@ -75,30 +75,6 @@ public class MainActivity extends Activity {
     	Log.d("", "invite for coffee started");
     }
 
-//    public void toggleLocationUpdates(View view){
-//    	Log.d("", "toggle location updates entered");
-//    	toggleLocationUpdates();
-//    }
-
-//    private void toggleLocationUpdates(){
-//
-//    	Button toggleButton = (Button) findViewById(R.id.toggleLocationUpdatesButton);
-//
-//    	if(updatesActive){
-//    		toggleButton.setText("Start Updating Location");
-//        	Intent intent = new Intent(this, UpdateLocationService.class);
-//        	intent.setAction("Stop");
-//        	startService(intent);
-//        	updatesActive = false;
-//    	} else {
-//    		toggleButton.setText("Stop Updating Location");
-//        	Intent intent = new Intent(this, UpdateLocationService.class);
-//        	intent.putExtra("username", this.username);
-//        	startService(intent);
-//        	updatesActive = true;
-//    	}
-//    }
-
 	public void getGPSLocation(){
 
 		// get location
@@ -106,7 +82,6 @@ public class MainActivity extends Activity {
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
 	}
-
 
 	private class MyLocationListener implements LocationListener {
 		  public void onLocationChanged(Location location) {
@@ -129,7 +104,6 @@ public class MainActivity extends Activity {
 		  }
 	};
 
-
 	protected void updateLocation(Location location){
 		Log.d("", "received location update");
 
@@ -142,10 +116,5 @@ public class MainActivity extends Activity {
 
 		Log.d("", "lat: " + lat + ", lon: " + lon);
 	}
-
-
-
-
-
 
 }
