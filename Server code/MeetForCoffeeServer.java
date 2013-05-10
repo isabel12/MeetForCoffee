@@ -49,6 +49,7 @@ public class MeetForCoffeeServer {
 	File locationsFile;
 	File idsFile;
 
+
 	// filenames
 	String USERS_FILENAME = "users.txt";
 	String FRIENDS_FILENAME = "friends.txt";
@@ -71,6 +72,9 @@ public class MeetForCoffeeServer {
 	private Map<String, Location> locations = new HashMap<String, Location>();
 	private Map<String, Integer> ids = new HashMap<String, Integer>(); // the next ids of the object types
 
+	/**
+	 * Constructor - connects to proxy, and sets up files.
+	 */
 	public MeetForCoffeeServer(){
 
 		ProxyConnection.ConnectToProxy();
