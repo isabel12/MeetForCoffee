@@ -719,6 +719,7 @@ public class MeetForCoffeeServer {
 		server.AddFriend("bill", "ben");
 		server.AcceptFriendRequest("ben", "bill");
 		server.InviteFriendToMeet("bill", "ben", "some cafe");
+		server.GetInvitationUpdates("ben");
 		server.AcceptGroupInvitation("ben", 1);
 		
 		server.UpdateLocation("ben", -41.288610, 174.768405); // kirk

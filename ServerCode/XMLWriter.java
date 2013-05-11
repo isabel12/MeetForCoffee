@@ -150,8 +150,10 @@ public class XMLWriter {
 
 	private static void Location(StringBuilder sb, Location location){
 		OpenTag(sb, "location");
-		SimpleTag(sb, "lat", location.getLat() + "");
-		SimpleTag(sb, "lon", location.getLon() + "");
+		if (location != null){
+			SimpleTag(sb, "lat", location.getLat() + "");
+			SimpleTag(sb, "lon", location.getLon() + "");
+		}
 		CloseTag(sb, "location");
 	}
 
