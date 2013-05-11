@@ -13,6 +13,7 @@ public class XMLCafeHandler extends DefaultHandler{
 	private static final String ITEM = "result";
 	private static final String NAME = "name";
 	private static final String ID = "id";
+	private static final String LOCATION = "location";
 	private static final String LAT = "lat";
 	private static final String LON = "lng";
 
@@ -44,10 +45,11 @@ public class XMLCafeHandler extends DefaultHandler{
 				currentCafe.name = builder.toString();
 			} else if (name.equalsIgnoreCase(ID)){
 				currentCafe.id = builder.toString();
-			} else if (name.equalsIgnoreCase(LAT)){
-				currentCafe.lat = Double.parseDouble(builder.toString());
+			} 
+			else if (name.equalsIgnoreCase(LAT)){
+				currentCafe.location.setLat( Double.parseDouble(builder.toString()));
 			} else if (name.equalsIgnoreCase(LON)){
-				currentCafe.lon = Double.parseDouble(builder.toString());
+				currentCafe.location.setLon( Double.parseDouble(builder.toString()));
 			} else if (name.equalsIgnoreCase(ITEM)){
 				cafes.put(currentCafe.id, currentCafe);
 			}
@@ -68,7 +70,9 @@ public class XMLCafeHandler extends DefaultHandler{
 		super.startElement(uri, localName, name, attributes);
 		if (name.equalsIgnoreCase(ITEM)){
 			this.currentCafe = new Cafe();
-		}
+		} else if (name.equalsIgnoreCase(LOCATION)){
+			currentCafe.location = new Location(0, 0);
+		} 
 	}
 
 }

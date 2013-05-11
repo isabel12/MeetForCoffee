@@ -30,6 +30,17 @@ public class XMLPullFeedParser {
 	public static final String MESSAGE = "message";
 	public static final String SUCCESS = "success";
 
+	public static final String GROUP = "group";
+	public static final String ID = "id";
+	public static final String CAFE = "cafe";
+	public static final String NAME = "name";
+	public static final String LAT = "lat";
+	public static final String LON = "lon";
+	public static final String ORGANISER = "organiser";
+	public static final String ATTENDING = "attending";
+	public static final String PENDING = "pending";
+	
+	
 
 	public Requests parsePendingRequests(InputStream inputStream){
 		try {

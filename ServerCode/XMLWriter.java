@@ -22,21 +22,10 @@ public class XMLWriter {
 		StringBuilder sb = new StringBuilder();
 
 		OpenTag(sb, "result");
+		OpenTag(sb, "requestResult");
 		SimpleTag(sb, "message", message);
 		SimpleTag(sb, "success", success.toString());
-		CloseTag(sb, "result");
-
-		System.out.println(sb.toString());
-		return sb.toString();
-	}
-
-	public synchronized static String RegisterResult(Boolean success){
-		tabIndent = 0;
-
-		StringBuilder sb = new StringBuilder();
-
-		OpenTag(sb, "result");
-		SimpleTag(sb, "success", success.toString());
+		CloseTag(sb, "requestResult");
 		CloseTag(sb, "result");
 
 		System.out.println(sb.toString());
@@ -46,11 +35,13 @@ public class XMLWriter {
 	public synchronized static String GetInvitationUpdatesResult(Set<String> friendRequests,
 			Set<Group> groupRequests) {
 
+		tabIndent = 0;
 		StringBuilder sb = new StringBuilder();
 		OpenTag(sb, "result");
+		OpenTag(sb, "invitationUpdates");
 		OpenTag(sb, "friendRequests");
 		for(String f: friendRequests){
-			SimpleTag(sb, "member", f);
+			Member(sb, f);
 		}
 		CloseTag(sb, "friendRequests");
 		OpenTag(sb, "groupInvitations");
@@ -58,6 +49,7 @@ public class XMLWriter {
 			Group(sb, g);
 		}
 		CloseTag(sb, "groupInvitations");
+		CloseTag(sb, "invitationUpdates");
 		CloseTag(sb, "result");
 
 		System.out.println(sb.toString());
@@ -66,11 +58,11 @@ public class XMLWriter {
 
 
 	public synchronized static String CreateGroupResult(int groupId){
+		tabIndent = 0;
 		StringBuilder sb = new StringBuilder();
 		OpenTag(sb, "result");
 		
-		SimpleTag(sb, "success", true + "");
-		SimpleTag(sb, "groupId", groupId + "");
+			SimpleTag(sb, "groupId", groupId + "");
 		
 		CloseTag(sb, "result");
 		System.out.println(sb.toString());
@@ -78,15 +70,12 @@ public class XMLWriter {
 	}
 
 	public synchronized static String GetFriendsLocationsResult(Map<String, Location> locations){
-
+		tabIndent = 0;
 		StringBuilder sb = new StringBuilder();
 
 		OpenTag(sb, "result");
 		for(String username: locations.keySet()){
-			OpenTag(sb, "member");
-			SimpleTag(sb, "username", username);
-			Location(sb, locations.get(username));
-			CloseTag(sb, "member");
+			Member(sb, username, locations.get(username));
 		}
 		CloseTag(sb, "result");
 
@@ -95,10 +84,10 @@ public class XMLWriter {
 	}
 
 	public synchronized static String GetCafesResult(Collection<Cafe> cafes){
+		tabIndent = 0;
 		StringBuilder sb = new StringBuilder();
 
 		OpenTag(sb, "result");
-		SimpleTag(sb, "success", true + "");
 		for(Cafe c: cafes){
 			Cafe(sb, c);
 		}
@@ -108,7 +97,9 @@ public class XMLWriter {
 		return sb.toString();	
 	}
 	
-	
+	//===========================================================================================
+	// object encoders
+	//===========================================================================================
 
 	private static void Group(StringBuilder sb, Group group){
 
@@ -119,30 +110,43 @@ public class XMLWriter {
 		Cafe(sb, group.cafe);
 
 		OpenTag(sb, "organiser");
-		SimpleTag(sb, "member", group.groupInitiator);
+			Member(sb, group.groupInitiator);
 		CloseTag(sb, "organiser");
 
 		OpenTag(sb, "attending");
 		for(String member: group.attending){
-			SimpleTag(sb, "member", member);
+			Member(sb, member);
 		}
 		CloseTag(sb, "attending");
 
 		OpenTag(sb, "pending");
 		for(String member: group.pending){
-			SimpleTag(sb, "member", member);
+			Member(sb, member);
 		}
 		CloseTag(sb, "pending");
 
 		OpenTag(sb, "declined");
 		for(String member: group.declined){
-			SimpleTag(sb, "member", member);
+			Member(sb, member);
 		}
 		CloseTag(sb, "declined");
 
 		CloseTag(sb, "group");
 	}
+	
 
+	private static void Member(StringBuilder sb, String username){
+		OpenTag(sb, "member");
+		SimpleTag(sb, "username", username);
+		CloseTag(sb, "member");		
+	}
+	
+	private static void Member(StringBuilder sb, String username, Location location){
+		OpenTag(sb, "member");
+		SimpleTag(sb, "username", username);
+		Location(sb, location);
+		CloseTag(sb, "member");		
+	}
 
 	private static void Location(StringBuilder sb, Location location){
 		OpenTag(sb, "location");
@@ -155,11 +159,16 @@ public class XMLWriter {
 		OpenTag(sb, "cafe");
 		SimpleTag(sb, "name", cafe.name);
 		SimpleTag(sb, "id", cafe.id);
-		SimpleTag(sb, "lat", cafe.lat + "");
-		SimpleTag(sb, "lon", cafe.lon + "");
+		Location(sb, cafe.location);
 		CloseTag(sb, "cafe");
 	}
 
+	
+	//=================================================================================
+	// basic building blocks
+	//=================================================================================
+	
+	
 	private static void OpenTag(StringBuilder sb, String tagName){
 		String tabs = "";
 		for(int i = 0; i < tabIndent; i++){

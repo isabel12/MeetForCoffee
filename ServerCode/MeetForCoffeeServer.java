@@ -245,13 +245,13 @@ public class MeetForCoffeeServer {
 	public String Register(String username){
 		System.out.println(String.format("Register(%s)", username));
 		if(users.containsKey(username)){
-			return XMLWriter.RegisterResult(false);
+			return XMLWriter.PerformActionResult("Already registered. ", false);
 		}
 
 		users.put(username, new User(userId++, username, 0, 0));
 		WriteFile(USERS_FILENAME, usersFile, this.users);
 
-		return XMLWriter.RegisterResult(true);
+		return XMLWriter.PerformActionResult("Registration successful. ", true);
 	}
 
 	public String AddFriend(String username, String toInvite){
