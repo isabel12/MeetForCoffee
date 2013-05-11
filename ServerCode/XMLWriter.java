@@ -174,33 +174,33 @@ public class XMLWriter {
 	
 	
 	private static void OpenTag(StringBuilder sb, String tagName){
-		String tabs = "";
-		for(int i = 0; i < tabIndent; i++){
-			tabs += "\t";
-		}
+//		String tabs = "";
+//		for(int i = 0; i < tabIndent; i++){
+//			tabs += "\t";
+//		}
 
-		sb.append(tabs + "<" + tagName + ">\r\n");
-		tabIndent++;
+		sb.append("<" + tagName + ">");
+//		tabIndent++;
 	}
 
 	private static void AddValue(StringBuilder sb, String message){
-		String tabs = "";
-		for(int i = 0; i < tabIndent; i++){
-			tabs += "\t";
-		}
+//		String tabs = "";
+//		for(int i = 0; i < tabIndent; i++){
+//			tabs += "\t";
+//		}
 
-		sb.append(tabs + message + "\r\n");
+		sb.append(message);
 	}
 
 	private static void CloseTag(StringBuilder sb, String tagName){
-		tabIndent--;
+//		tabIndent--;
+//
+//		String tabs = "";
+//		for(int i = 0; i < tabIndent; i++){
+//			tabs += "\t";
+//		}
 
-		String tabs = "";
-		for(int i = 0; i < tabIndent; i++){
-			tabs += "\t";
-		}
-
-		sb.append(tabs + "</" + tagName + ">\r\n");
+		sb.append("</" + tagName + ">");
 
 	}
 

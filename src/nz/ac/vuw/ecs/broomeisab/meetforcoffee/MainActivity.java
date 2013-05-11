@@ -1,5 +1,8 @@
 package nz.ac.vuw.ecs.broomeisab.meetforcoffee;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import android.location.Criteria;
@@ -21,8 +24,10 @@ public class MainActivity extends Activity {
 
 	private String username;
 	private boolean updatesActive;
+	private FeedInputStreamLoader inputStreamLoader;
+	private XMLPullFeedParser xmlParser;
 
-	public static MyLocationListener locationListener;
+	private static MyLocationListener locationListener;
 
 
 	@Override
@@ -30,6 +35,8 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.login);
 		locationListener = new MyLocationListener();
+		this.inputStreamLoader = new FeedInputStreamLoader();
+		xmlParser = new XMLPullFeedParser();
 	}
 
 	@Override
@@ -68,6 +75,23 @@ public class MainActivity extends Activity {
 
     public void manageFriends(View view){
     	Log.d("", "manage friends started");
+    	
+    	
+    	String xml = "<ns:GetInvitationUpdatesResponse xmlns:ns=\"http://stockquoteservice/xsd\"><ns:return><result><invitationUpdates><friendRequests></friendRequests></result></ns:return></ns:GetInvitationUpdatesResponse>";
+    	
+    	InputStream is;
+		try {
+			is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+	    	Log.d("", "loaded input stream, parsing input");
+	    	Requests requests = xmlParser.parsePendingRequests(is);
+	    	Log.d("", "parsed input: " + requests.friends.size());					
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}//inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetInvitationUpdates?username=bill");
+    	
+
+    	
     }
 
 
