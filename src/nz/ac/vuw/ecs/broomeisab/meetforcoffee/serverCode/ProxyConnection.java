@@ -1,3 +1,5 @@
+package nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode;
+
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 

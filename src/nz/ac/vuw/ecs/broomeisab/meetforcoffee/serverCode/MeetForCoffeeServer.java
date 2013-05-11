@@ -1,3 +1,5 @@
+package nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;

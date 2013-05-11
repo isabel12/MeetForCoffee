@@ -1,3 +1,5 @@
+package nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

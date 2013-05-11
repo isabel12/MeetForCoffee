@@ -75,12 +75,28 @@ public class MainActivity extends Activity {
     	Log.d("", "invite for coffee started");
     }
 
+    
+    public void getRequestUpdates(){
+    	
+    	
+    }
+    
+    
+    
+    
+    
+    //==========================================================================
+    // update location stuff
+    //==========================================================================
+    
+    
+    
 	public void getGPSLocation(){
 
 		// get location
-		LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+//		LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+//		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+//		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
 	}
 
 	private class MyLocationListener implements LocationListener {
