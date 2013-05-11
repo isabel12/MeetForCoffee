@@ -157,9 +157,11 @@ public class XMLWriter {
 
 	private static void Cafe(StringBuilder sb, Cafe cafe){
 		OpenTag(sb, "cafe");
-		SimpleTag(sb, "name", cafe.name);
-		SimpleTag(sb, "id", cafe.id);
-		Location(sb, cafe.location);
+		if(cafe != null){
+			SimpleTag(sb, "name", cafe.name);
+			SimpleTag(sb, "id", cafe.id);
+			Location(sb, cafe.location);
+		}
 		CloseTag(sb, "cafe");
 	}
 
