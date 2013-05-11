@@ -79,16 +79,22 @@ public class MainActivity extends Activity {
     	
     	String xml = "<ns:GetInvitationUpdatesResponse xmlns:ns=\"http://stockquoteservice/xsd\"><ns:return><result><invitationUpdates><friendRequests></friendRequests></result></ns:return></ns:GetInvitationUpdatesResponse>";
     	
-    	InputStream is;
-		try {
-			is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
-	    	Log.d("", "loaded input stream, parsing input");
-	    	Requests requests = xmlParser.parsePendingRequests(is);
-	    	Log.d("", "parsed input: " + requests.friends.size());					
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}//inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetInvitationUpdates?username=bill");
+    	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetInvitationUpdates?username=bill");
+    	Log.d("", "loaded input stream, parsing input");
+    	Requests requests = xmlParser.parsePendingRequests(is);
+    	Log.d("", "parsed input: " + requests.friends.size());	
+    	Log.d("", "friend request: " + requests.friends.get(0));
+    	
+    	
+//    	try {
+//			is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+//	    	Log.d("", "loaded input stream, parsing input");
+//	    	Requests requests = xmlParser.parsePendingRequests(is);
+//	    	Log.d("", "parsed input: " + requests.friends.size());					
+//		} catch (UnsupportedEncodingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
     	
 
     	

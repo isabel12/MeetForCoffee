@@ -112,6 +112,19 @@ public class XMLPullFeedParser {
 		
 		
 		
+		private List<Group> ParseGroupInvitations(XmlPullParser parser) throws XmlPullParserException, IOException{
+			
+			
+			return null;
+			
+			
+			
+			
+			
+		}
+		
+		
+		
 		
 		@Override
 		protected Requests doInBackground(
@@ -126,12 +139,8 @@ public class XMLPullFeedParser {
 			XmlPullParser parser = null; 
 			try {
 				factory = XmlPullParserFactory.newInstance();
-				//factory.setNamespaceAware(true);
-	            //factory.setValidating(true);
-
-				parser = factory.newPullParser();//Xml.newPullParser();
+				parser = factory.newPullParser();
 			} catch (XmlPullParserException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 
@@ -139,23 +148,14 @@ public class XMLPullFeedParser {
 				// auto-detect the encoding from the stream
 				parser.setInput(params[0], null);
 				
-
 				boolean done = false;
 				boolean record = false;
-//
-//				// fields to make the Update
-//				int parsedVersion = -1; // version currently being parsed
-//				RouteUpdate update = null;
-//				int id = -1;
-//				UpdateType updateType = null;
-//				String agency = null;
-//				String routeName = null;
-
+				
 				int eventType = parser.getEventType();
 				while (eventType != XmlPullParser.END_DOCUMENT && !done){
 					switch (eventType){				
 					case XmlPullParser.START_DOCUMENT:
-						Log.d("","start of document");
+						//Log.d("","start of document");
 						friends = new ArrayList<String>();
 						groups = new ArrayList<Group>();
 						requests = new Requests();
@@ -163,20 +163,14 @@ public class XMLPullFeedParser {
 					case XmlPullParser.START_TAG:
 						
 						String name = parser.getName();
-						Log.d("", "start tag found: " + name);
-						
-//						if(name.equals("ns:return")){
-//							String text = parser.nextText();
-//							Log.d("", "text after ns:return: " + text);
-//						}
-						
+						//Log.d("", "start tag found: " + name);
 						if (name.equalsIgnoreCase(DOCUMENT)){
 							Log.d("","start of result");
 							record = true;
 						} else if (record == true){
 
 							if (name.equalsIgnoreCase(FRIEND_REQUESTS)){
-								Log.d("","start of friendRequests");
+								//Log.d("","start of friendRequests");
 								friends = ParseFriendRequests(parser);
 							} 
 							else if (name.equalsIgnoreCase(GROUP_INVITATIONS)){
@@ -187,7 +181,7 @@ public class XMLPullFeedParser {
 					case XmlPullParser.END_TAG:
 						
 						name = parser.getName();
-						Log.d("", "end tag found: " + name);
+						//Log.d("", "end tag found: " + name);
 						if (name.equalsIgnoreCase(DOCUMENT)){
 							done = true;
 							requests.friends = friends;
@@ -195,8 +189,8 @@ public class XMLPullFeedParser {
 						}
 						break;			
 					default:
-						name = parser.getName();
-						Log.d("", "default: " + name);
+						Log.d("", "default: ");
+						parser.next();	
 						break;
 					}
 
@@ -207,7 +201,7 @@ public class XMLPullFeedParser {
 			}
 
 			// return
-			Log.d("", "returning answer");
+			//Log.d("", "returning answer");
 			return requests;
 		}
 	}
