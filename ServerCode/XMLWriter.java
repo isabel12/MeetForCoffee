@@ -179,7 +179,7 @@ public class XMLWriter {
 			tabs += "\t";
 		}
 
-		sb.append(tabs + "<" + tagName + ">/r/n");
+		sb.append(tabs + "<" + tagName + ">\r\n");
 		tabIndent++;
 	}
 
@@ -189,7 +189,7 @@ public class XMLWriter {
 			tabs += "\t";
 		}
 
-		sb.append(tabs + message + "/r/n");
+		sb.append(tabs + message + "\r\n");
 	}
 
 	private static void CloseTag(StringBuilder sb, String tagName){
@@ -200,7 +200,7 @@ public class XMLWriter {
 			tabs += "\t";
 		}
 
-		sb.append(tabs + "</" + tagName + ">/r/n");
+		sb.append(tabs + "</" + tagName + ">\r\n");
 
 	}
 
