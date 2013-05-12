@@ -108,43 +108,37 @@ public class MainActivity extends Activity {
     	// change the screen
     	setContentView(R.layout.main_menu);
     	
-    	// disable the view status button
-		Button inviteForCoffeeButton = (Button)findViewById(R.id.view_group_status_button);
-		inviteForCoffeeButton.setClickable(false);
-		inviteForCoffeeButton.setEnabled(false);
+    	
+    	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=" + LoginInfo.username);
+    	LoginInfo.groupId = xmlParser.parseGroupId(is);
+    	
+    	if(LoginInfo.groupId == 0){
+    	
+	    	// disable the view status button
+			Button viewGroupStatusButton = (Button)findViewById(R.id.view_group_status_button);
+			viewGroupStatusButton.setClickable(false);
+			viewGroupStatusButton.setEnabled(false);
+    	} else {
+	    	// disable the invite button
+			Button inviteForCoffeeButton = (Button)findViewById(R.id.invite_for_coffee_button);
+			inviteForCoffeeButton.setClickable(false);
+			inviteForCoffeeButton.setEnabled(false);	
+    	}
 
+		// register on server just in case
+		is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/Register?username=" + LoginInfo.username);
+		try {
+			is.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
     	Log.d("", "logged in as " + LoginInfo.username);
 
     	getGPSLocation();
     }
 
-
-    
-   
-    
-    
-    
-    
-    
-    public void manageFriends(View view){
-    	Log.d("", "manage friends started");
-//    		
-//    	String xml = "<ns:GetInvitationUpdatesResponse xmlns:ns=\"http://stockquoteservice/xsd\"><ns:return><result><invitationUpdates><friendRequests></friendRequests></result></ns:return></ns:GetInvitationUpdatesResponse>";
-//    	
-//    	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetInvitationUpdates?username=bill");
-//    	Log.d("", "loaded input stream, parsing input");
-//    	Requests requests = xmlParser.parsePendingRequests(is);
-//    	Log.d("", "parsed input: " + requests.friends.size());	
-//    	Log.d("", "friend request: " + requests.friends.get(0));
-    }
-    
-    
-    
-    
-
-
-    
-    
     
     public void inviteForCoffee(View view){
     	Log.d("", "invite for coffee started");
@@ -153,14 +147,7 @@ public class MainActivity extends Activity {
     	loadCafes();
     	
     	setInviteView();
-    	
-//    	// the intent binds this view to the other view we want to display
-//    	Intent intent = new Intent(this, InviteActivity.class);
-//    	intent.putExtra(InviteActivity.LAT, lat);
-//    	intent.putExtra(InviteActivity.LON, lon);
-//
-//    	// start the new activity
-//    	startActivity(intent);
+ 	
     }
 
     
@@ -265,13 +252,13 @@ public class MainActivity extends Activity {
     	}	
     	
     	// cheat and make them accept straight away
-    	try {
-    		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AcceptGroupInvitation?username=%s&groupID=%d", friendName, groupId));
-			is.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	
+//    	try {
+//    		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AcceptGroupInvitation?username=%s&groupID=%d", friendName, groupId));
+//			is.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//    	
     	// put all info into intent
  	
     	LoginInfo.groupId = groupId;

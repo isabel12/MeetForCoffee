@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -88,48 +89,58 @@ public class GroupStatusActivity extends Activity {
 		// connect to server here
 		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetGroupMembersLocations?username=%s&groupID=%d", LoginInfo.username, LoginInfo.groupId));
 		attending = xmlParser.parseFriendLocations(is);
-		
-		//attending = new ArrayList<User>();
-		//attending.add(new User("Jenny", new nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Location(-41.292112, 174.766432)));
 	}
 	
 	private void getGroupStatus(){
 		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetGroupStatus?username=%s&groupID=%d", LoginInfo.username, LoginInfo.groupId));
-		//group = xmlParser.par
+		group = xmlParser.parseGroup(is);	
 		
-		
+		LoginInfo.cafeLocation = new Location("");
+		LoginInfo.cafeLocation.setLatitude(group.cafe.location.getLat());
+		LoginInfo.cafeLocation.setLongitude(group.cafe.location.getLon());
+		LoginInfo.cafeName = group.cafe.name;
 	}
+	
+	private void checkActiveGroup(){
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=%s", LoginInfo.username));
+		if((LoginInfo.groupId = xmlParser.parseGroupId(is)) == 0){
+			leaveGroup();
+		}	
+	}
+	
 	
 	public void pollStatus(){
 		polling = true;
 		
-
-				getGroupStatus();
+		// goes back to main menu if they aren't in a group
+		checkActiveGroup();
 		
-				getFriendLocations();
+		// gets group 
+		getGroupStatus();
+		
+		// gets attending people's locations
+		getFriendLocations();
 				
-				// calculate how far away they are
-				distance = new HashMap<String, Integer>();
-				for(User p: attending){
-					distance.put(p.GetUsername(), getDistanceInMetres(p.GetLat(), p.GetLon()));
-				}		
+		// calculate how far away they are
+		distance = new HashMap<String, Integer>();
+		for(User p: attending){		
+			String username = p.GetUsername().equals(LoginInfo.username)? "You" : p.GetUsername();
+			distance.put(username, getDistanceInMetres(p.GetLat(), p.GetLon()));
+		}		
 				
-				// update the list
-				updateAttendingList();	
+		// update the list
+		updateAttendingList();	
 			
 	}
 	
 	
-	public void leaveGroup(View view){
-		// ask to leave the group
-		
-		
+	private void leaveGroup(){
 		
 		// set polling as false
+		polling = false;
 		LoginInfo.cafeLocation = null;
 		LoginInfo.cafeName = null;
 		LoginInfo.groupId = 0;
-		
 		
 		// return to main menu
 		Intent intent = new Intent(this, MainActivity.class);	
@@ -137,19 +148,40 @@ public class GroupStatusActivity extends Activity {
 	}
 	
 	
-	private void updateAttendingList(){
+	public void leaveGroup(View view){
+		// ask to leave the group
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/CancelGroup?username=%s&groupID=%d", LoginInfo.username, LoginInfo.groupId));	
 		
+		leaveGroup();
+	}
+	
+	
+	private void updateAttendingList(){
+		// update title
+		TextView title = (TextView)findViewById(R.id.group_information_title);
+		title.setText(LoginInfo.cafeName);
+		
+		// pending
+		List<String> pendingList = new ArrayList<String>();
+		for(String pending: group.pending){
+			pendingList.add(pending);
+		}
+
+    	ArrayAdapter<String> pendingAdapter =
+        		new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, pendingList);
+        	ListView myList = (ListView)findViewById(R.id.pending_list);
+            myList.setAdapter(pendingAdapter);
+			
 		// attending
 		List<String> list = new ArrayList<String>();
 		for(String key: distance.keySet()){
-			list.add(key + " - " + distance.get(key) + "m");
+			list.add(key + " - " + distance.get(key) + "m away");
 		}
 
     	ArrayAdapter<String> adapter =
         		new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, list);
-        	ListView myList = (ListView)findViewById(R.id.attending_list);
-            myList.setAdapter(adapter);
-		
+        	myList = (ListView)findViewById(R.id.attending_list);
+            myList.setAdapter(adapter);	
 	}
 	
 	
