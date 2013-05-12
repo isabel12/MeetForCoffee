@@ -244,10 +244,10 @@ public class MainActivity extends Activity {
     	
     	Spinner cafeSpinner = (Spinner) findViewById(R.id.cafes_spinner);
     	int cafeId = cafeSpinner.getSelectedItemPosition();
-    	String cafeXML = cafes.get(cafeId).toXML(); // todo change to xml!
+    	Cafe cafe = cafes.get(cafeId); // todo change to xml!
     		
     	// send group create request
-    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/InviteFriendToMeet?username=%s&toInvite=%s&cafeXML=%s", LoginInfo.username, friendName, cafeXML));
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/InviteFriendToMeet?username=%s&toInvite=%s&cafeID=%s&cafeName=%s&cafeLat=%f&cafeLon=%f", LoginInfo.username, friendName, cafe.id, cafe.name, cafe.location.getLat(), cafe.location.getLon()));
     	int groupId = xmlParser.parseGroupId(is);
  	
     	// cheat and make them accept straight away
@@ -259,7 +259,6 @@ public class MainActivity extends Activity {
 		}
     	
     	// put all info into intent
-    	Cafe cafe = cafes.get(cafeId);
     	
     	LoginInfo.groupId = groupId;
     	LoginInfo.cafeName = cafe.name;

@@ -367,9 +367,9 @@ public class MeetForCoffeeServer {
 	 * @param Location
 	 * @return
 	 */
-	public String InviteFriendToMeet(String username, String toInvite, String CafeXML){
+	public String InviteFriendToMeet(String username, String toInvite, String cafeID, String cafeName, double cafeLat, double cafeLon){
 
-		System.out.println(String.format("InviteFriendToMeet(%s, %s, %s)", username, toInvite, CafeXML));
+		System.out.println(String.format("InviteFriendToMeet(%s, %s, %s, %s, %f, %f)", username, toInvite, cafeID, cafeName, cafeLat, cafeLon));
 		
 		// make sure you don't already own a group
 		for(Group g: activeGroups.values()){
@@ -384,7 +384,7 @@ public class MeetForCoffeeServer {
 		}
 
 		// get the cafe
-		Cafe cafe = LoadCafe(CafeXML);
+		Cafe cafe = new Cafe(cafeID, cafeName, new Location(cafeLat, cafeLon));
 
 		// create an active group
 		Group newGroup = new Group(GetId("Group"), cafe, username, new String[]{toInvite});
@@ -731,7 +731,7 @@ public class MeetForCoffeeServer {
 		server.Register("ben");
 		server.AddFriend("bill", "ben");
 		server.AcceptFriendRequest("ben", "bill");
-		server.InviteFriendToMeet("bill", "ben", "some cafe");
+		server.InviteFriendToMeet("bill", "ben", "sdfoij210394j", "Vic Books", -41.288610, 174.768405);
 		server.GetInvitationUpdates("ben");
 		server.AcceptGroupInvitation("ben", 1);	
 		server.GetGroupStatus("ben", 1);
