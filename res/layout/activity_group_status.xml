@@ -5,13 +5,26 @@
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/cafe_name_title"
+        android:id="@+id/group_information_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
 	 />
+     
+    <TextView
+        android:id="@+id/pending_list_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Pending: "
+	 />
          
-     <TextView
+     <ListView android:id="@+id/pending_list" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content"
+    	/>
+       
+    <TextView
         android:id="@+id/attending_list_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -29,7 +42,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Leave Group"
-        android:onClick="leaveGroup" />
-     
+        android:onClick="leaveGroup" /> 
      
 </LinearLayout>

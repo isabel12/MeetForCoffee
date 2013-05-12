@@ -259,6 +259,11 @@ public class MainActivity extends Activity {
     	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/InviteFriendToMeet?username=%s&toInvite=%s&cafeID=%s&cafeName=%s&cafeLat=%f&cafeLon=%f", LoginInfo.username, friendName, cafe.id, cafeName, cafe.location.getLat(), cafe.location.getLon()));
     	int groupId = xmlParser.parseGroupId(is);
  	
+    	if(groupId == 0){
+    		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=%s", LoginInfo.username));
+    		groupId = xmlParser.parseGroupId(is);
+    	}	
+    	
     	// cheat and make them accept straight away
     	try {
     		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AcceptGroupInvitation?username=%s&groupID=%d", friendName, groupId));
@@ -268,13 +273,12 @@ public class MainActivity extends Activity {
 		}
     	
     	// put all info into intent
-    	
+ 	
     	LoginInfo.groupId = groupId;
     	LoginInfo.cafeName = cafe.name;
     	LoginInfo.cafeLocation = new Location("cafe");
     	LoginInfo.cafeLocation.setLatitude(cafe.location.getLat());
-    	LoginInfo.cafeLocation.setLongitude(cafe.location.getLon());
-    	
+    	LoginInfo.cafeLocation.setLongitude(cafe.location.getLon());	
     	Log.d("","set group info");
     	
     	Intent intent = new Intent(this, GroupStatusActivity.class);   	

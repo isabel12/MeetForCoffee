@@ -1,5 +1,6 @@
 package nz.ac.vuw.ecs.broomeisab.meetforcoffee;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Group;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.User;
 
 import android.location.Location;
@@ -33,19 +35,23 @@ public class GroupStatusActivity extends Activity {
 	public static String CAFE_LON = "nz.ac.vuw.ecs.broomeisab.meetforcoffee.cafe_lon";
 	
 	// received from intent
-
+	FeedInputStreamLoader feedLoader;
+	XMLPullFeedParser xmlParser;
+	
 	boolean polling = false;
 	Timer timer;
 	
 	
 	// this gets updated lots
+	Group group;
 	List<User> attending;
 	Map<String, Integer> distance;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+		feedLoader = new FeedInputStreamLoader();
+		xmlParser = new XMLPullFeedParser();
 		
 		setContentView(R.layout.activity_group_status);
 		
@@ -80,19 +86,26 @@ public class GroupStatusActivity extends Activity {
 	private void getFriendLocations(){
 		
 		// connect to server here
-		attending = new ArrayList<User>();
-		attending.add(new User("Jenny", new nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Location(-41.292112, 174.766432)));
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetGroupMembersLocations?username=%s&groupID=%d", LoginInfo.username, LoginInfo.groupId));
+		attending = xmlParser.parseFriendLocations(is);
+		
+		//attending = new ArrayList<User>();
+		//attending.add(new User("Jenny", new nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Location(-41.292112, 174.766432)));
 	}
 	
-	
+	private void getGroupStatus(){
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetGroupStatus?username=%s&groupID=%d", LoginInfo.username, LoginInfo.groupId));
+		//group = xmlParser.par
+		
+		
+	}
 	
 	public void pollStatus(){
 		polling = true;
 		
-//		while(polling){
-//		
-//			try {
-				// get updated locations
+
+				getGroupStatus();
+		
 				getFriendLocations();
 				
 				// calculate how far away they are
@@ -104,12 +117,6 @@ public class GroupStatusActivity extends Activity {
 				// update the list
 				updateAttendingList();	
 			
-//				Thread.sleep(15000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
 	}
 	
 	

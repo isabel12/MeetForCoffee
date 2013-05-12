@@ -571,7 +571,7 @@ public class MeetForCoffeeServer {
 		}
 
 		// return result in xml format
-		return XMLWriter.GetFriendsLocationsResult(locations);
+		return XMLWriter.GetFriendsLocationsResult(friendLocations);
 	}
 	
 	public String GetGroupStatus(String username, int groupID){
