@@ -242,7 +242,7 @@ public class MeetForCoffeeServer {
 		
 		Register("jenny");
 		AddFriend("jenny", "ben");
-		AcceptFriendRequest("ben", "jenny")
+		AcceptFriendRequest("ben", "jenny");
 		UpdateLocation("jenny", -41.289318, 174.768748); // rankine brown
 	}
 		
