@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Cafe;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Group;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Location;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.RequestResult;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.User;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -36,7 +37,9 @@ public class XMLPullFeedParser {
 	public static final String USERNAME = "username";
 	public static final String MESSAGE = "message";
 	public static final String SUCCESS = "success";
-
+	public static final String REQUEST_RESULT = "requestResult";
+	public static final String GROUP_ID = "groupId";
+	
 	public static final String GROUP = "group";
 	public static final String ID = "id";
 	public static final String CAFE = "cafe";
@@ -99,6 +102,80 @@ public class XMLPullFeedParser {
 	}
 	
 
+	public int parseGroupId(InputStream inputStream){
+		
+		try {
+			Log.d("", "parsing friendLocations");
+			AsyncTask<InputStream, Void, Integer> parseTask = new ParseGroupIdTask().execute(inputStream);
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
+		
+		
+	}
+	
+	
+	
+	private class ParseGroupIdTask extends ParsingAsyncTask<InputStream, Void, Integer>{
+
+		@Override
+		protected Integer doInBackground(InputStream... params) {
+			// initialise
+			int id = 0;
+			
+			// get parser
+			XmlPullParserFactory factory;
+			XmlPullParser parser = null; 
+			try {
+				factory = XmlPullParserFactory.newInstance();
+				parser = factory.newPullParser();
+			} catch (XmlPullParserException e1) {
+				e1.printStackTrace();
+			}
+				
+			try {
+				// set input
+				parser.setInput(params[0], null);
+				
+				boolean done = false;
+				
+				int eventType = parser.getEventType();
+				while (eventType != XmlPullParser.END_DOCUMENT && !done){
+					String name = null;				
+					switch(eventType){
+						case XmlPullParser.START_TAG:
+							name = parser.getName();
+							if(name.equalsIgnoreCase(GROUP_ID)){
+								id = Integer.parseInt(parser.nextText().trim());	
+							}
+							break;
+						case XmlPullParser.END_TAG:
+							name = parser.getName();
+							if(name.equalsIgnoreCase(DOCUMENT)){
+								done = true;					
+							}
+							break;
+					}
+					eventType = parser.next();		
+				}
+							
+			} catch (XmlPullParserException e) {
+				e.printStackTrace();
+			} catch (IOException e){
+				e.printStackTrace();
+			}
+			
+			Log.d("", "returning groupID: " + id);
+			return id;
+		}	
+	}
+	
+	
 	
 	
 	
@@ -314,6 +391,50 @@ public class XMLPullFeedParser {
 
 	
 	private abstract class ParsingAsyncTask<A,B,ReturnType> extends AsyncTask<A,B,ReturnType>{
+		
+		
+		protected RequestResult ParseRequestResult(XmlPullParser parser) throws XmlPullParserException, IOException{
+			
+			Log.d("", "entered ParseRequestResult");
+			
+			boolean done = false;
+			boolean record = false;
+			
+			RequestResult result = null;
+			
+				
+			int eventType = parser.getEventType();
+			while(eventType != XmlPullParser.END_DOCUMENT && !done){
+				String name = null;
+				switch(eventType){
+					case(XmlPullParser.START_TAG):
+						name = parser.getName();
+						if(name.equalsIgnoreCase(REQUEST_RESULT)){
+							record = true;
+							result = new RequestResult();							
+						} else if (record && result != null){
+							if(name.equalsIgnoreCase(MESSAGE)){
+								result.message = parser.nextText().trim();
+							} 						
+							else if (name.equalsIgnoreCase(SUCCESS)){
+								result.success = Boolean.parseBoolean(parser.nextText().trim());
+							}					
+						}
+						break;
+					case(XmlPullParser.END_TAG):
+						name = parser.getName();
+						if(name.equalsIgnoreCase(REQUEST_RESULT)){
+							record = false;
+							done = true;
+						}
+					break;
+				}
+				eventType = parser.next();
+			}
+			
+			Log.d("","returning requestResult: " + result);
+			return result;		
+		}
 		
 		
 		protected List<String> ParseFriendRequests(XmlPullParser parser) throws XmlPullParserException, IOException{

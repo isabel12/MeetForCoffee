@@ -384,7 +384,7 @@ public class MeetForCoffeeServer {
 		}
 
 		// get the cafe
-		Cafe cafe = new Cafe(); //LoadCafe(CafeXML);
+		Cafe cafe = LoadCafe(CafeXML);
 
 		// create an active group
 		Group newGroup = new Group(GetId("Group"), cafe, username, new String[]{toInvite});

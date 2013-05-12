@@ -9,6 +9,7 @@ public class Cafe implements Serializable {
 	public Location location;
 	public String name;
 	public String id;
+	private static int tabIndent;
 
 	public Cafe(String id, String name, Location location){
 		this.id = id;
@@ -26,6 +27,8 @@ public class Cafe implements Serializable {
 				+ "]";
 	}
 	
-	
+	public String toXML(){
+		return XMLWriter.GetCafe(this);
+	}	
 
 }
