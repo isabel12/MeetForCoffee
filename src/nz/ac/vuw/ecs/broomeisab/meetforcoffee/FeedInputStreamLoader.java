@@ -56,21 +56,12 @@ public class FeedInputStreamLoader {
 
 			    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
 			    String xml = s.hasNext() ? s.next() : "";
-			    
-			    
-			    if (xml.contains("&lt;")){
-			    	Log.d("", "Contains &lt;");
-			    }
-			    
+			    		 
 			    xml = xml.replace("&lt;", "<");
-			    
-			    if (!xml.contains("&lt;")){
-			    	Log.d("", "Now doesn't contain &lt;");
-			    }
-			    
+			    xml = xml.replace("&#xd;", "");
+			      
 			    is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
-			    
-	
+			    	
 			    return is;
 
 			} catch (IOException e) {

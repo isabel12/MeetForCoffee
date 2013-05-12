@@ -6,15 +6,37 @@
     android:orientation="vertical">
 
     <Button
+        android:id="@+id/invite_for_coffee_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="inviteForCoffee"
         android:text="Invite For Coffee" />
-
+    
+    <Button
+        android:id="@+id/view_group_status_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="viewGroupStatus"
+        android:text="View Group Status" />
+    
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="manageFriends"
         android:text="Manage Friends" />
+    
+    <TextView
+        android:id="@+id/trips_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Invitations" />
+    
+    <ListView android:id="@+id/friends_list"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"/>
+    
+    <ListView android:id="@+id/groups_list"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"/>
 
 </LinearLayout>

@@ -1,0 +1,35 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/cafe_name_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+	 />
+         
+     <TextView
+        android:id="@+id/attending_list_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Attending: "
+	 />
+         
+     <ListView android:id="@+id/attending_list" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content"
+    	/>
+
+     <Button
+        android:id="@+id/leave_group_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Leave Group"
+        android:onClick="leaveGroup" />
+     
+     
+</LinearLayout>

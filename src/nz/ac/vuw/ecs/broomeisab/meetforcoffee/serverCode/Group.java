@@ -11,12 +11,12 @@ import java.util.Set;
 
 public class Group implements Serializable{
 	
-	int groupId;
-	Cafe cafe;  // name of the cafe
-	String groupInitiator; // username
-	List<String> attending;
-	List<String> pending;
-	List<String> declined;
+	public int groupId;
+	public Cafe cafe;  // name of the cafe
+	public String groupInitiator; // username
+	public List<String> attending;
+	public List<String> pending;
+	public List<String> declined;
 
 	public Group(int groupId, Cafe cafe, String instigator, String[] pendingMembers){
 		this.groupId = groupId;
@@ -34,6 +34,12 @@ public class Group implements Serializable{
 		}
 
 		this.cafe = cafe;
+	}
+	
+	public Group(){
+		this.attending = new ArrayList<String>();
+		this.pending = new ArrayList<String>();
+		this.declined = new ArrayList<String>();
 	}
 
 	/**
@@ -97,6 +103,16 @@ public class Group implements Serializable{
 		return false;
 	}
 
+	@Override
+	public String toString() {
+		return "Group [groupId=" + groupId + ", cafe=" + cafe
+				+ ", groupInitiator=" + groupInitiator + ", attending="
+				+ attending + ", pending=" + pending + ", declined=" + declined
+				+ "]";
+	}
+
+	
+	
 
 
 

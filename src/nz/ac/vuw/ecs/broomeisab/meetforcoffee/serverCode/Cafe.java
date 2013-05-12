@@ -1,24 +1,31 @@
 package nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode;
 
+
 import java.io.Serializable;
 
 
 public class Cafe implements Serializable {
 
-	public double lat;
-	public double lon;
+	public Location location;
 	public String name;
 	public String id;
 
-	public Cafe(String id, String name, double lat, double lon){
+	public Cafe(String id, String name, Location location){
 		this.id = id;
 		this.name = name;
-		this.lat = lat;
-		this.lon = lon;
+		this.location = location;
 	}
 
 	public Cafe() {
 
 	}
+
+	@Override
+	public String toString() {
+		return "Cafe [location=" + location + ", name=" + name + ", id=" + id
+				+ "]";
+	}
+	
+	
 
 }

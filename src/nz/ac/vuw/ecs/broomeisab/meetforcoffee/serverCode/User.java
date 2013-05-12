@@ -7,32 +7,35 @@ import java.io.Serializable;
 public class User implements Serializable {
 
 
-	private int id;
 	private String username;
-	private double lat;
-	private double lon;
+	private Location location;
 
 
-	public User(int id, String username, double lat, double lon){
-		this.id = id;
+	public User(String username, Location location){
 		this.username = username;
-		this.lat = lat;
-		this.lon = lon;
+		this.location = location;
 	}
 
 	public void SetLocation(double lat, double lon){
-		this.lat = lat;
-		this.lon = lon;
+		this.location.setLat(lat);
+		this.location.setLon(lon);
 	}
 
 	public double GetLon(){
-		return this.lon;
+		return this.location.getLon();
 	}
 
 	public double GetLat(){
-		return this.lat;
+		return this.location.getLat();
 	}
 
+	public String GetUsername(){
+		return this.username;
+	}
 
-
+	@Override
+	public String toString() {
+		return "User [username=" + username + ", location=" + location + "]";
+	}
+	
 }

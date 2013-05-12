@@ -239,6 +239,11 @@ public class MeetForCoffeeServer {
 		AcceptFriendRequest("ben", "bill");
 		UpdateLocation("ben", -41.288610, 174.768405); // kirk
 		UpdateLocation("bill", -41.292112, 174.766432);// fairly
+		
+		Register("jenny");
+		AddFriend("jenny", "ben");
+		AcceptFriendRequest("ben", "jenny")
+		UpdateLocation("jenny", -41.289318, 174.768748); // rankine brown
 	}
 		
 	
