@@ -13,8 +13,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -383,6 +386,13 @@ public class MeetForCoffeeServer {
 			return XMLWriter.PerformActionResult("You are not friends with " + toInvite, false);
 		}
 
+		
+		try {
+			cafeName = URLDecoder.decode(cafeName, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
 		// get the cafe
 		Cafe cafe = new Cafe(cafeID, cafeName, new Location(cafeLat, cafeLon));
 
@@ -405,6 +415,32 @@ public class MeetForCoffeeServer {
 		return XMLWriter.CreateGroupResult(newGroup.groupId);
 	}
 
+	
+	
+	public String GetActiveGroup(String username){
+		
+		System.out.println(String.format("GetActiveGroup(%s)", username));
+		
+		if(!users.containsKey(username))
+			return XMLWriter.PerformActionResult("No user registered with that username", false);
+		
+		Group group = null;
+		for(Group g: activeGroups.values()){		
+			if (g.attending.contains(username)){
+				group = g;
+				break;
+			}	
+		}
+		
+		if(group == null){
+			return XMLWriter.PerformActionResult("You are not attending any groups", false);
+		}
+		
+		return XMLWriter.CreateGroupResult(group.groupId);		
+	}
+	
+	
+	
 
 	public String AcceptGroupInvitation(String username, int groupID){
 		System.out.println(String.format("AcceptGroupInvitation(%s, %d)", username, groupID));
@@ -734,6 +770,7 @@ public class MeetForCoffeeServer {
 		server.InviteFriendToMeet("bill", "ben", "sdfoij210394j", "Vic Books", -41.288610, 174.768405);
 		server.GetInvitationUpdates("ben");
 		server.AcceptGroupInvitation("ben", 1);	
+		server.GetActiveGroup("ben");
 		server.GetGroupStatus("ben", 1);
 		
 		server.UpdateLocation("ben", -41.288610, 174.768405); // kirk

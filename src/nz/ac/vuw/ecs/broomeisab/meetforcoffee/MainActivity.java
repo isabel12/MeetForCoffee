@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -246,13 +247,21 @@ public class MainActivity extends Activity {
     	int cafeId = cafeSpinner.getSelectedItemPosition();
     	Cafe cafe = cafes.get(cafeId); // todo change to xml!
     		
+    	String cafeName = "";
+		try {
+			cafeName = URLEncoder.encode(cafe.name, "UTF-8");
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+    	
     	// send group create request
-    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/InviteFriendToMeet?username=%s&toInvite=%s&cafeID=%s&cafeName=%s&cafeLat=%f&cafeLon=%f", LoginInfo.username, friendName, cafe.id, cafe.name, cafe.location.getLat(), cafe.location.getLon()));
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/InviteFriendToMeet?username=%s&toInvite=%s&cafeID=%s&cafeName=%s&cafeLat=%f&cafeLon=%f", LoginInfo.username, friendName, cafe.id, cafeName, cafe.location.getLat(), cafe.location.getLon()));
     	int groupId = xmlParser.parseGroupId(is);
  	
     	// cheat and make them accept straight away
     	try {
-    		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AcceptGroupInvitation?username=%s&groupID=%d", LoginInfo.username, groupId));
+    		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AcceptGroupInvitation?username=%s&groupID=%d", friendName, groupId));
 			is.close();
 		} catch (IOException e) {
 			e.printStackTrace();
