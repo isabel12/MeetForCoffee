@@ -177,32 +177,18 @@ public class MainActivity extends Activity {
 	private void loadFriends(){
 		
 		// get input
-
 		InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetAllFriendsLocations?username=" + LoginInfo.username);
 		friends = xmlParser.parseFriendLocations(is);
 
 		Log.d("", "loaded friend: " + friends.get(0));
-		
-		// fake it
-		//friends = new ArrayList<User>();
-		//friends.add(new User("Jenny", new nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Location(-41.292112, 174.766432)));	
 	}
 	
 	private void loadCafes(){
 		
 		// get input
-		try {
-			InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetCloseByCafes?username=" + LoginInfo.username);
-			is.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetCloseByCafes?username=" + LoginInfo.username);
+		cafes = xmlParser.parseCafes(is);
 		
-		
-		// fake it
-		cafes = new ArrayList<Cafe>();
-		cafes.add(new Cafe("", "Vic Books", new nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Location(-41.288610, 174.768405)));
 	}
 	
 	private void setInviteView(){

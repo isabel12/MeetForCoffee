@@ -97,6 +97,19 @@ public class XMLWriter {
 		return sb.toString();	
 	}
 	
+	public synchronized static String GetGroupUpdateResult(Group g){
+		tabIndent = 0;
+		StringBuilder sb = new StringBuilder();
+
+		OpenTag(sb, "result");	
+		Group(sb, g);
+		CloseTag(sb, "result");
+
+		System.out.println(sb.toString());
+		return sb.toString();	
+		
+	}
+	
 	//===========================================================================================
 	// object encoders
 	//===========================================================================================

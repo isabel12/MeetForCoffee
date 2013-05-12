@@ -82,6 +82,21 @@ public class XMLPullFeedParser {
 	}
 	
 	
+	public List<Cafe> parseCafes(InputStream inputStream){
+		
+		try {
+			Log.d("", "parsing friendLocations");
+			AsyncTask<InputStream, Void, List<Cafe>> parseTask = new ParseCafesTask().execute(inputStream);
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
+			
+	}
 	
 
 	
@@ -109,7 +124,6 @@ public class XMLPullFeedParser {
 				parser.setInput(params[0], null);
 				
 				boolean done = false;
-				boolean record = false;
 				
 				int eventType = parser.getEventType();
 				while (eventType != XmlPullParser.END_DOCUMENT && !done){
@@ -135,21 +149,75 @@ public class XMLPullFeedParser {
 					}
 					eventType = parser.next();		
 				}
-						
-				Log.d("", "returning friends: " + friends.size());
-				return friends;
-				
+							
 			} catch (XmlPullParserException e) {
 				e.printStackTrace();
 			} catch (IOException e){
 				e.printStackTrace();
 			}
 			
-
-			
+			Log.d("", "returning friends: " + friends.size());
 			return friends;
+		}	
+	}
+	
+	
+	
+	private class ParseCafesTask extends ParsingAsyncTask<InputStream, Void, List<Cafe>>{
+
+		@Override
+		protected List<Cafe> doInBackground(InputStream... params) {
+			// initialise friends list
+			List<Cafe> cafes = null;
 			
+			// get parser
+			XmlPullParserFactory factory;
+			XmlPullParser parser = null; 
+			try {
+				factory = XmlPullParserFactory.newInstance();
+				parser = factory.newPullParser();
+			} catch (XmlPullParserException e1) {
+				e1.printStackTrace();
+			}
+				
+			try {
+				// set input
+				parser.setInput(params[0], null);		
+				boolean done = false;
+				
+				int eventType = parser.getEventType();
+				while (eventType != XmlPullParser.END_DOCUMENT && !done){
+					String name = null;				
+					switch(eventType){
+						case XmlPullParser.START_DOCUMENT:
+							cafes = new ArrayList<Cafe>();
+							break;
+						case XmlPullParser.START_TAG:
+							name = parser.getName();
+							Log.d("", "start tag: " + name);
+							if(name.equalsIgnoreCase(CAFE)){
+								cafes.add(ParseCafe(parser));
+							}
+							break;
+						case XmlPullParser.END_TAG:
+							name = parser.getName();
+							Log.d("", "end tag: " + name);
+							if(name.equalsIgnoreCase(DOCUMENT)){
+								done = true;					
+							}
+							break;
+					}
+					eventType = parser.next();		
+				}
+							
+			} catch (XmlPullParserException e) {
+				e.printStackTrace();
+			} catch (IOException e){
+				e.printStackTrace();
+			}
 			
+			Log.d("", "returning cafes: " + cafes.size());
+			return cafes;
 		}	
 	}
 	
@@ -163,11 +231,7 @@ public class XMLPullFeedParser {
 	 */
 	private class ParsePendingRequestsTask extends ParsingAsyncTask<InputStream, Void, Requests> {
 
-
-
-		
-		
-		
+	
 		@Override
 		protected Requests doInBackground(
 				InputStream... params) {
@@ -250,6 +314,8 @@ public class XMLPullFeedParser {
 
 	
 	private abstract class ParsingAsyncTask<A,B,ReturnType> extends AsyncTask<A,B,ReturnType>{
+		
+		
 		protected List<String> ParseFriendRequests(XmlPullParser parser) throws XmlPullParserException, IOException{
 			
 			Log.d("","entered ParseMembersUsernames");
@@ -294,9 +360,7 @@ public class XMLPullFeedParser {
 			
 			String username = null;
 			Location location = null;
-			
-			
-			
+				
 			int eventType = parser.getEventType();
 			while(eventType != XmlPullParser.END_DOCUMENT && !done){
 				String name = null;
@@ -353,10 +417,10 @@ public class XMLPullFeedParser {
 						record = true;
 					} else if (record){
 						if (name.equalsIgnoreCase(NAME)){
-							cafe.name = parser.nextText();
+							cafe.name = parser.nextText().trim();
 						}
 						else if (name.equalsIgnoreCase(ID)){
-							cafe.id = parser.nextText();
+							cafe.id = parser.nextText().trim();
 						}
 						else if (name.equalsIgnoreCase(LOCATION)){
 							cafe.location = ParseLocation(parser);
@@ -431,9 +495,7 @@ public class XMLPullFeedParser {
 				case XmlPullParser.START_TAG:		
 					String name = parser.getName();
 					if (name.equalsIgnoreCase(USERNAME)){
-						//Log.d("","start of username tag");
-						username = parser.nextText().trim();
-						
+						username = parser.nextText().trim();			
 					} 
 					break;
 				case XmlPullParser.END_TAG:
@@ -451,8 +513,7 @@ public class XMLPullFeedParser {
 		
 		
 		protected List<Group> ParseGroupInvitations(XmlPullParser parser) throws XmlPullParserException, IOException{
-			
-			
+					
 			Log.d("","entered ParseGroupInvitations");
 			boolean done = false;
 			boolean record = false;
@@ -465,15 +526,12 @@ public class XMLPullFeedParser {
 				case XmlPullParser.START_TAG:
 					String name = parser.getName();
 					if (name.equalsIgnoreCase(GROUP)){
-						Log.d("","start tag for group");
 						currentGroup = new Group();
 						record = true;
 					} else if(record){
 						if (name.equalsIgnoreCase(ID)){
-							Log.d("", "currentGroup: " + currentGroup);
-							String text = parser.getText();
-							Log.d("", "groupId: " + text);
-							//currentGroup.groupId = Integer.parseInt(text);
+							String text = parser.nextText();
+							currentGroup.groupId = Integer.parseInt(text);
 						} 
 						else if (name.equalsIgnoreCase(CAFE)){
 							currentGroup.cafe = ParseCafe(parser);
@@ -495,7 +553,6 @@ public class XMLPullFeedParser {
 				case XmlPullParser.END_TAG:
 					name = parser.getName();
 					if (name.equalsIgnoreCase(GROUP)){
-						//Log.d("","end of friendRequests tag");
 						groups.add(currentGroup);
 						currentGroup = null;
 					} else if (name.equalsIgnoreCase(GROUP_INVITATIONS)){
@@ -506,7 +563,7 @@ public class XMLPullFeedParser {
 				eventType = parser.next();
 			}
 			
-			Log.d("","returning groups");
+			Log.d("","returning groups: " + groups.size());
 			return groups;	
 		}
 	}

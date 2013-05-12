@@ -58,8 +58,12 @@ public class FeedInputStreamLoader {
 			    String xml = s.hasNext() ? s.next() : "";
 			    		 
 			    xml = xml.replace("&lt;", "<");
+			    xml = xml.replace("&gt;", ">");
 			    xml = xml.replace("&#xd;", "");
-			      
+			    xml = xml.replace("&amp;", "and");
+			    
+			    Log.d("", xml);  
+			    
 			    is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
 			    	
 			    return is;

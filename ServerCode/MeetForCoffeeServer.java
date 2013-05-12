@@ -13,10 +13,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,8 +23,6 @@ import java.util.Set;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
-import org.xml.sax.helpers.DefaultHandler;
 
 
 public class MeetForCoffeeServer {
@@ -541,6 +537,18 @@ public class MeetForCoffeeServer {
 		// return result in xml format
 		return XMLWriter.GetFriendsLocationsResult(locations);
 	}
+	
+	public String GetGroupStatus(String username, int groupID){
+		Group group = activeGroups.get(groupID);
+		if(group == null)
+			return XMLWriter.PerformActionResult(String.format("There is no active group with id: %d", groupID), false);
+		
+		if (!group.attending.contains(username) && !group.pending.contains(username) && !group.declined.contains(username))
+			XMLWriter.PerformActionResult(String.format("You are not a member of that group: %d", groupID), false);
+		
+		
+		return XMLWriter.GetGroupUpdateResult(group);		
+	}
 
 
 	public String GetCloseByCafes(String username){
@@ -725,7 +733,8 @@ public class MeetForCoffeeServer {
 		server.AcceptFriendRequest("ben", "bill");
 		server.InviteFriendToMeet("bill", "ben", "some cafe");
 		server.GetInvitationUpdates("ben");
-		server.AcceptGroupInvitation("ben", 1);
+		server.AcceptGroupInvitation("ben", 1);	
+		server.GetGroupStatus("ben", 1);
 		
 		server.UpdateLocation("ben", -41.288610, 174.768405); // kirk
 		server.UpdateLocation("bill", -41.292112, 174.766432);// fairly
