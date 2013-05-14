@@ -53,29 +53,12 @@ public class MainActivity extends Activity {
 		locationListener = new MyLocationListener();
 		this.inputStreamLoader = new InputStreamLoader();
 		xmlParser = new XMLPullFeedParser();
-		
-		
+			
 		if (ApplicationState.username == null){
 			setContentView(R.layout.login);
 			
 		} else {
-			setContentView(R.layout.main_menu);
-			getGPSLocation();
-				
-			// disable buttons depending on if in group or not
-			if(ApplicationState.groupId != 0){
-				Button inviteForCoffeeButton = (Button)findViewById(R.id.invite_for_coffee_button);
-				inviteForCoffeeButton.setClickable(false);
-				inviteForCoffeeButton.setEnabled(false);
-			}
-			
-			// disable group status button depending on if group or not
-			if(ApplicationState.groupId == 0){
-				Button inviteForCoffeeButton = (Button)findViewById(R.id.view_group_status_button);
-				inviteForCoffeeButton.setClickable(false);
-				inviteForCoffeeButton.setEnabled(false);
-			}
-			
+			signIn();	
 		}
 		
 	}
@@ -89,7 +72,7 @@ public class MainActivity extends Activity {
 
 
     /**
-     * Called when the user clicks the Send button
+     * Called when the user clicks the 'Sign in' button on the login screen.
      * @param view
      */
     public void signIn(View view){
@@ -104,11 +87,27 @@ public class MainActivity extends Activity {
     		ApplicationState.username = null;
     		return;
     	}
-
+    	
+		// register on server just in case
+		InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/Register?username=" + ApplicationState.username);
+		try {
+			is.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	signIn();
+    }
+    
+    /**
+     * This method is called when the username is valid.  It gets the groupID, disables buttons, starts updating GPS location, and displays the Main Menu View.
+     */
+    public void signIn(){
     	// change the screen
     	setContentView(R.layout.main_menu);
     	
-    	
+    	// get group id from the server
     	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=" + ApplicationState.username);
     	ApplicationState.groupId = xmlParser.parseGroupId(is);
     	
@@ -125,20 +124,12 @@ public class MainActivity extends Activity {
 			inviteForCoffeeButton.setEnabled(false);	
     	}
 
-		// register on server just in case
-		is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/Register?username=" + ApplicationState.username);
-		try {
-			is.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
     	Log.d("", "logged in as " + ApplicationState.username);
 
-    	getGPSLocation();
+    	// start updating location
+    	getGPSLocation(ApplicationState.getTimeBetweenLocationUpdates());
     }
-
+    
     
     public void inviteForCoffee(View view){
     	Log.d("", "invite for coffee started");
@@ -147,7 +138,6 @@ public class MainActivity extends Activity {
     	loadCafes();
     	
     	setInviteView();
- 	
     }
 
     
@@ -162,6 +152,9 @@ public class MainActivity extends Activity {
     // private methods to help with group_invitation page
     //======================================================
     
+    /**
+     * Loads friends locations.
+     */
 	private void loadFriends(){
 		
 		// get input
@@ -171,12 +164,13 @@ public class MainActivity extends Activity {
 		Log.d("", "loaded friend: " + friends.get(0));
 	}
 	
-	private void loadCafes(){
-		
+	/**
+	 * Loads nearby cafes.
+	 */
+	private void loadCafes(){		
 		// get input
 		InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetCloseByCafes?username=" + ApplicationState.username);
-		cafes = xmlParser.parseCafes(is);
-		
+		cafes = xmlParser.parseCafes(is);	
 	}
 	
 	private void setInviteView(){
@@ -223,8 +217,7 @@ public class MainActivity extends Activity {
     		Log.d("","groupId is not zero: " + ApplicationState.groupId);
     		return;
     	}
-    	
-    	
+    	   	
     	// create a group
     	Spinner friendsSpinner = (Spinner) findViewById(R.id.friends_spinner);
     	int friendId = friendsSpinner.getSelectedItemPosition();
@@ -238,17 +231,17 @@ public class MainActivity extends Activity {
 		try {
 			cafeName = URLEncoder.encode(cafe.name, "UTF-8");
 		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
     	
     	// send group create request
     	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/InviteFriendToMeet?username=%s&toInvite=%s&cafeID=%s&cafeName=%s&cafeLat=%f&cafeLon=%f", ApplicationState.username, friendName, cafe.id, cafeName, cafe.location.getLat(), cafe.location.getLon()));
-    	int groupId = xmlParser.parseGroupId(is);
+    	ApplicationState.groupId = xmlParser.parseGroupId(is);
  	
-    	if(groupId == 0){
+    	// if it failed, it is because you are already in a group - get the number.
+    	if(ApplicationState.groupId == 0){
     		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=%s", ApplicationState.username));
-    		groupId = xmlParser.parseGroupId(is);
+    		ApplicationState.groupId = xmlParser.parseGroupId(is);
     	}	
     	
     	// cheat and make them accept straight away
@@ -258,16 +251,18 @@ public class MainActivity extends Activity {
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}
-//    	
-    	// put all info into intent
- 	
-    	ApplicationState.groupId = groupId;
+    	 	
+    	// put all info into ApplicationState
     	ApplicationState.cafeName = cafe.name;
     	ApplicationState.cafeLocation = new Location("cafe");
     	ApplicationState.cafeLocation.setLatitude(cafe.location.getLat());
     	ApplicationState.cafeLocation.setLongitude(cafe.location.getLon());	
     	Log.d("","set group info");
     	
+    	// start more frequent updates
+    	getGPSLocation(ApplicationState.getTimeBetweenLocationUpdates());
+    	
+    	// start GroupStatus Activity
     	Intent intent = new Intent(this, GroupStatusActivity.class);   	
     	this.startActivity(intent);
     }
@@ -279,20 +274,25 @@ public class MainActivity extends Activity {
     
     
     
-	public void getGPSLocation(){
+	public void getGPSLocation(int minMillisBetweenUpdates){
 
+		Log.d("", "Now receiving GPS updates every " + (minMillisBetweenUpdates / 1000) + " seconds.");
+		
 		// get location
-//		LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-//		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-//		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+		LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+		locationManager.removeUpdates(locationListener);
+		
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minMillisBetweenUpdates, 0, locationListener);
+		//locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minMillisBetweenUpdates, 0, locationListener);
 		
 		
-		// fake it
-		Location location = new Location("gps");
-		location.setLatitude(-41.288020); // von zedlitz i think...
-		location.setLongitude(174.768008);
 		
-		updateLocation(location);
+//		// fake it
+//		Location location = new Location("gps");
+//		location.setLatitude(-41.288020); // von zedlitz i think...
+//		location.setLongitude(174.768008);
+//		
+//		updateLocation(location);
 	}
 
 	private class MyLocationListener implements LocationListener {

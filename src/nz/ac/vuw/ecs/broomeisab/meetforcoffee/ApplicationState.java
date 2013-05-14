@@ -11,4 +11,12 @@ public class ApplicationState {
 	public static String cafeName;
 	public static Location cafeLocation = new Location("gps");
 	
+	public static int getTimeBetweenLocationUpdates(){
+		 if (groupId == 0){
+			return 300000; // 5 mins
+		 } else {
+			return 30000; // 30 seconds  
+		 }			
+	}
+	
 }

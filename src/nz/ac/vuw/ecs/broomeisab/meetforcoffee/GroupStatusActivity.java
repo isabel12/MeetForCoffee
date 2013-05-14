@@ -140,7 +140,7 @@ public class GroupStatusActivity extends Activity {
 		polling = false;
 		ApplicationState.cafeLocation = null;
 		ApplicationState.cafeName = null;
-		ApplicationState.groupId = 0;
+		ApplicationState.groupId = 0;	
 		
 		// return to main menu
 		Intent intent = new Intent(this, MainActivity.class);	
