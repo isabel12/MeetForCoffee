@@ -24,7 +24,7 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int action_settings=0x7f080013;
+        public static final int action_settings=0x7f08001a;
         public static final int attending_list=0x7f080004;
         public static final int attending_list_title=0x7f080003;
         public static final int back_to_main_menu_button=0x7f08000b;
@@ -34,9 +34,16 @@ public final class R {
         public static final int cafes_spinner=0x7f080009;
         public static final int editTextPassword=0x7f08000f;
         public static final int editTextUsername=0x7f08000e;
+        public static final int enter_username=0x7f080015;
+        public static final int friend_invitations_list=0x7f080017;
+        public static final int friend_invitations_title=0x7f080016;
         public static final int friends_in_area=0x7f080006;
+        public static final int friends_list=0x7f080014;
         public static final int friends_spinner=0x7f080007;
+        public static final int friends_title=0x7f080013;
         public static final int group_information_title=0x7f080000;
+        public static final int group_invitations_list=0x7f080019;
+        public static final int group_invitations_title=0x7f080018;
         public static final int invite_for_coffee_button=0x7f080011;
         public static final int invite_to_group_button=0x7f08000a;
         public static final int leave_group_button=0x7f080005;

@@ -261,6 +261,14 @@ public class MeetForCoffeeServer {
 	public String AddFriend(String username, String toInvite){
 		System.out.println(String.format("AddFriend(%s, %s)", username, toInvite));
 
+		if(!this.users.keySet().contains(username)){
+			return XMLWriter.PerformActionResult("Your username is invalid.", false);
+		}
+		
+		if(!this.users.keySet().contains(toInvite)){
+			return XMLWriter.PerformActionResult("No user with that username exists.", false);
+		}
+		
 		// get current friends and initialise if doesn't exist
 		Set<String> friends = this.friends.get(username);
 		if(friends == null){
@@ -278,7 +286,7 @@ public class MeetForCoffeeServer {
 			invitations = new HashSet<String>();
 		}
 		if(invitations.contains(toInvite)){
-			return XMLWriter.PerformActionResult("You have already invited " + toInvite + " as a friend", false);
+			return XMLWriter.PerformActionResult("You have already invited " + toInvite + " to be a friend", false);
 		}
 
 		// add to invite

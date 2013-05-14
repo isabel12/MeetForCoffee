@@ -27,7 +27,9 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
@@ -97,6 +99,8 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
     	
+		Log.d("", "logged in as " + ApplicationState.username);
+		
     	signIn();
     }
     
@@ -104,6 +108,7 @@ public class MainActivity extends Activity {
      * This method is called when the username is valid.  It gets the groupID, disables buttons, starts updating GPS location, and displays the Main Menu View.
      */
     public void signIn(){
+    	  	
     	// change the screen
     	setContentView(R.layout.main_menu);
     	
@@ -124,12 +129,16 @@ public class MainActivity extends Activity {
 			inviteForCoffeeButton.setEnabled(false);	
     	}
 
-    	Log.d("", "logged in as " + ApplicationState.username);
+    	refreshPage();
 
     	// start updating location
     	getGPSLocation(ApplicationState.getTimeBetweenLocationUpdates());
     }
     
+    
+    //======================================================
+    // Buttons on the main menu view
+    //======================================================
     
     public void inviteForCoffee(View view){
     	Log.d("", "invite for coffee started");
@@ -146,6 +155,51 @@ public class MainActivity extends Activity {
     	startActivity(intent);
     }
         
+    
+    public void addFriend(View view){
+    	addFriend();	
+    }
+    
+    //======================================================
+    // private methods to help with main menu page
+    //======================================================
+    
+    public void addFriend(){
+    	EditText editText = (EditText)findViewById(R.id.enter_username);
+    	
+    	String username = editText.getText().toString();
+    	editText.setText("");
+    	
+    	if(username.equals("") || username.equals(ApplicationState.username)){
+    		return;
+    	}
+    	
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AddFriend?username=%s&toInvite=%s", ApplicationState.username, username));
+    	//TODO parse input
+    	try {
+			is.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    private void refreshPage(){	
+    	// get friends
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetAllFriendsLocations?username=%s", ApplicationState.username));
+    	List<User> friends = xmlParser.parseFriendLocations(is);
+    	
+    	// display friends
+		List<String> friendList = new ArrayList<String>();
+		for(User friend: friends){
+			friendList.add(friend.GetUsername());
+		}
+	
+    	ArrayAdapter<String> friendsAdapter =
+        		new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, friendList);
+        	ListView myList = (ListView)findViewById(R.id.friends_list);
+            myList.setAdapter(friendsAdapter);
+			
+    }
     
     
     //======================================================

@@ -174,9 +174,7 @@ public class GroupStatusActivity extends Activity {
 	
 	
 	private void leaveGroup(){
-		
 
-		
 		ApplicationState.cafeLocation = null;
 		ApplicationState.cafeName = null;
 		ApplicationState.groupId = 0;	
