@@ -15,7 +15,9 @@ import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.User;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.app.Activity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,7 +42,8 @@ public class GroupStatusActivity extends Activity {
 	XMLPullFeedParser xmlParser;
 	
 	boolean polling = false;
-	Timer timer;
+	private Handler handler;
+	private Runnable runnable;
 	
 	
 	// this gets updated lots
@@ -56,9 +59,48 @@ public class GroupStatusActivity extends Activity {
 		
 		setContentView(R.layout.activity_group_status);
 		
-		pollStatus();
+
+		
 	}
 
+	public void onPause(){
+		super.onPause();
+		Log.d("", "on pause called");
+		
+		// set polling as false
+		synchronized(handler){
+			handler.removeCallbacks(runnable);
+			polling = false;
+		}
+	}
+	
+	
+	public void onResume(){
+		super.onResume();
+		
+		Log.d("", "on resume called");
+		
+		handler = new Handler();
+		
+		runnable = new Runnable(){			
+				public void run(){
+					// get status update
+					pollStatus();			
+					// reschedule
+					synchronized(handler){
+						if(polling){
+							handler.postDelayed(runnable, 5000);
+						}
+					}
+				}			
+			};
+					
+		polling = true;
+		
+		// get first status update	
+		handler.post(runnable);
+	}
+	
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -109,9 +151,7 @@ public class GroupStatusActivity extends Activity {
 	}
 	
 	
-	public void pollStatus(){
-		polling = true;
-		
+	public void pollStatus(){	
 		// goes back to main menu if they aren't in a group
 		checkActiveGroup();
 		
@@ -129,15 +169,14 @@ public class GroupStatusActivity extends Activity {
 		}		
 				
 		// update the list
-		updateAttendingList();	
-			
+		updateAttendingList();				
 	}
 	
 	
 	private void leaveGroup(){
 		
-		// set polling as false
-		polling = false;
+
+		
 		ApplicationState.cafeLocation = null;
 		ApplicationState.cafeName = null;
 		ApplicationState.groupId = 0;	
@@ -187,7 +226,6 @@ public class GroupStatusActivity extends Activity {
 	
 	private int getDistanceInMetres(double lat, double lon){
 		
-		LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 		Location friendLocation = new Location("gps");
 		friendLocation.setLatitude(lat);
 		friendLocation.setLongitude(lon);
@@ -197,24 +235,10 @@ public class GroupStatusActivity extends Activity {
 	
 	
 	
-	private class PollTimerTask extends TimerTask{
-
-		@Override
-		public void run() {
-			// get updated locations
-			getFriendLocations();
-			
-			// calculate how far away they are
-			distance = new HashMap<String, Integer>();
-			for(User p: attending){
-				distance.put(p.GetUsername(), getDistanceInMetres(p.GetLat(), p.GetLon()));
-			}		
-			
-			// update the list
-			updateAttendingList();
-		}
-	}
 	
+	
+	
+
 	
 	
 	
