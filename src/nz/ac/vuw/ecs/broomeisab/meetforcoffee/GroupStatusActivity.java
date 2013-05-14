@@ -9,8 +9,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Group;
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.User;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Group;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.User;
 
 import android.location.Location;
 import android.location.LocationManager;
@@ -36,7 +36,7 @@ public class GroupStatusActivity extends Activity {
 	public static String CAFE_LON = "nz.ac.vuw.ecs.broomeisab.meetforcoffee.cafe_lon";
 	
 	// received from intent
-	FeedInputStreamLoader feedLoader;
+	InputStreamLoader feedLoader;
 	XMLPullFeedParser xmlParser;
 	
 	boolean polling = false;
@@ -51,7 +51,7 @@ public class GroupStatusActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		feedLoader = new FeedInputStreamLoader();
+		feedLoader = new InputStreamLoader();
 		xmlParser = new XMLPullFeedParser();
 		
 		setContentView(R.layout.activity_group_status);
@@ -87,23 +87,23 @@ public class GroupStatusActivity extends Activity {
 	private void getFriendLocations(){
 		
 		// connect to server here
-		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetGroupMembersLocations?username=%s&groupID=%d", LoginInfo.username, LoginInfo.groupId));
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetGroupMembersLocations?username=%s&groupID=%d", ApplicationState.username, ApplicationState.groupId));
 		attending = xmlParser.parseFriendLocations(is);
 	}
 	
 	private void getGroupStatus(){
-		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetGroupStatus?username=%s&groupID=%d", LoginInfo.username, LoginInfo.groupId));
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetGroupStatus?username=%s&groupID=%d", ApplicationState.username, ApplicationState.groupId));
 		group = xmlParser.parseGroup(is);	
 		
-		LoginInfo.cafeLocation = new Location("");
-		LoginInfo.cafeLocation.setLatitude(group.cafe.location.getLat());
-		LoginInfo.cafeLocation.setLongitude(group.cafe.location.getLon());
-		LoginInfo.cafeName = group.cafe.name;
+		ApplicationState.cafeLocation = new Location("");
+		ApplicationState.cafeLocation.setLatitude(group.cafe.location.getLat());
+		ApplicationState.cafeLocation.setLongitude(group.cafe.location.getLon());
+		ApplicationState.cafeName = group.cafe.name;
 	}
 	
 	private void checkActiveGroup(){
-		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=%s", LoginInfo.username));
-		if((LoginInfo.groupId = xmlParser.parseGroupId(is)) == 0){
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=%s", ApplicationState.username));
+		if((ApplicationState.groupId = xmlParser.parseGroupId(is)) == 0){
 			leaveGroup();
 		}	
 	}
@@ -124,7 +124,7 @@ public class GroupStatusActivity extends Activity {
 		// calculate how far away they are
 		distance = new HashMap<String, Integer>();
 		for(User p: attending){		
-			String username = p.GetUsername().equals(LoginInfo.username)? "You" : p.GetUsername();
+			String username = p.GetUsername().equals(ApplicationState.username)? "You" : p.GetUsername();
 			distance.put(username, getDistanceInMetres(p.GetLat(), p.GetLon()));
 		}		
 				
@@ -138,9 +138,9 @@ public class GroupStatusActivity extends Activity {
 		
 		// set polling as false
 		polling = false;
-		LoginInfo.cafeLocation = null;
-		LoginInfo.cafeName = null;
-		LoginInfo.groupId = 0;
+		ApplicationState.cafeLocation = null;
+		ApplicationState.cafeName = null;
+		ApplicationState.groupId = 0;
 		
 		// return to main menu
 		Intent intent = new Intent(this, MainActivity.class);	
@@ -150,7 +150,7 @@ public class GroupStatusActivity extends Activity {
 	
 	public void leaveGroup(View view){
 		// ask to leave the group
-		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/CancelGroup?username=%s&groupID=%d", LoginInfo.username, LoginInfo.groupId));	
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/CancelGroup?username=%s&groupID=%d", ApplicationState.username, ApplicationState.groupId));	
 		
 		leaveGroup();
 	}
@@ -159,7 +159,7 @@ public class GroupStatusActivity extends Activity {
 	private void updateAttendingList(){
 		// update title
 		TextView title = (TextView)findViewById(R.id.group_information_title);
-		title.setText(LoginInfo.cafeName);
+		title.setText(ApplicationState.cafeName);
 		
 		// pending
 		List<String> pendingList = new ArrayList<String>();
@@ -192,7 +192,7 @@ public class GroupStatusActivity extends Activity {
 		friendLocation.setLatitude(lat);
 		friendLocation.setLongitude(lon);
 		
-		return (int)LoginInfo.cafeLocation.distanceTo(friendLocation);	
+		return (int)ApplicationState.cafeLocation.distanceTo(friendLocation);	
 	}
 	
 	

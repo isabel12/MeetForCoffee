@@ -8,8 +8,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Cafe;
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.User;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Cafe;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.User;
 
 import android.location.Criteria;
 import android.location.Location;
@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
 	List<Cafe> cafes;
 	
 	private boolean updatesActive;
-	private FeedInputStreamLoader inputStreamLoader;
+	private InputStreamLoader inputStreamLoader;
 	private XMLPullFeedParser xmlParser;
 
 	private static MyLocationListener locationListener;
@@ -51,11 +51,11 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		locationListener = new MyLocationListener();
-		this.inputStreamLoader = new FeedInputStreamLoader();
+		this.inputStreamLoader = new InputStreamLoader();
 		xmlParser = new XMLPullFeedParser();
 		
 		
-		if (LoginInfo.username == null){
+		if (ApplicationState.username == null){
 			setContentView(R.layout.login);
 			
 		} else {
@@ -63,14 +63,14 @@ public class MainActivity extends Activity {
 			getGPSLocation();
 				
 			// disable buttons depending on if in group or not
-			if(LoginInfo.groupId != 0){
+			if(ApplicationState.groupId != 0){
 				Button inviteForCoffeeButton = (Button)findViewById(R.id.invite_for_coffee_button);
 				inviteForCoffeeButton.setClickable(false);
 				inviteForCoffeeButton.setEnabled(false);
 			}
 			
 			// disable group status button depending on if group or not
-			if(LoginInfo.groupId == 0){
+			if(ApplicationState.groupId == 0){
 				Button inviteForCoffeeButton = (Button)findViewById(R.id.view_group_status_button);
 				inviteForCoffeeButton.setClickable(false);
 				inviteForCoffeeButton.setEnabled(false);
@@ -98,10 +98,10 @@ public class MainActivity extends Activity {
     	EditText editTextUsername = (EditText) findViewById(R.id.editTextUsername);
 
     	// gets the message from the EditText
-    	LoginInfo.username = editTextUsername.getText().toString();
+    	ApplicationState.username = editTextUsername.getText().toString();
 
-    	if(LoginInfo.username.equals("")){
-    		LoginInfo.username = null;
+    	if(ApplicationState.username.equals("")){
+    		ApplicationState.username = null;
     		return;
     	}
 
@@ -109,10 +109,10 @@ public class MainActivity extends Activity {
     	setContentView(R.layout.main_menu);
     	
     	
-    	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=" + LoginInfo.username);
-    	LoginInfo.groupId = xmlParser.parseGroupId(is);
+    	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=" + ApplicationState.username);
+    	ApplicationState.groupId = xmlParser.parseGroupId(is);
     	
-    	if(LoginInfo.groupId == 0){
+    	if(ApplicationState.groupId == 0){
     	
 	    	// disable the view status button
 			Button viewGroupStatusButton = (Button)findViewById(R.id.view_group_status_button);
@@ -126,7 +126,7 @@ public class MainActivity extends Activity {
     	}
 
 		// register on server just in case
-		is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/Register?username=" + LoginInfo.username);
+		is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/Register?username=" + ApplicationState.username);
 		try {
 			is.close();
 		} catch (IOException e) {
@@ -134,7 +134,7 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 		
-    	Log.d("", "logged in as " + LoginInfo.username);
+    	Log.d("", "logged in as " + ApplicationState.username);
 
     	getGPSLocation();
     }
@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
 	private void loadFriends(){
 		
 		// get input
-		InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetAllFriendsLocations?username=" + LoginInfo.username);
+		InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetAllFriendsLocations?username=" + ApplicationState.username);
 		friends = xmlParser.parseFriendLocations(is);
 
 		Log.d("", "loaded friend: " + friends.get(0));
@@ -174,7 +174,7 @@ public class MainActivity extends Activity {
 	private void loadCafes(){
 		
 		// get input
-		InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetCloseByCafes?username=" + LoginInfo.username);
+		InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetCloseByCafes?username=" + ApplicationState.username);
 		cafes = xmlParser.parseCafes(is);
 		
 	}
@@ -219,8 +219,8 @@ public class MainActivity extends Activity {
     public void inviteToMeet(View view){
     	Log.d("","invite to meet entered");
     	
-    	if(LoginInfo.groupId != 0){
-    		Log.d("","groupId is not zero: " + LoginInfo.groupId);
+    	if(ApplicationState.groupId != 0){
+    		Log.d("","groupId is not zero: " + ApplicationState.groupId);
     		return;
     	}
     	
@@ -243,11 +243,11 @@ public class MainActivity extends Activity {
 		}
     	
     	// send group create request
-    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/InviteFriendToMeet?username=%s&toInvite=%s&cafeID=%s&cafeName=%s&cafeLat=%f&cafeLon=%f", LoginInfo.username, friendName, cafe.id, cafeName, cafe.location.getLat(), cafe.location.getLon()));
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/InviteFriendToMeet?username=%s&toInvite=%s&cafeID=%s&cafeName=%s&cafeLat=%f&cafeLon=%f", ApplicationState.username, friendName, cafe.id, cafeName, cafe.location.getLat(), cafe.location.getLon()));
     	int groupId = xmlParser.parseGroupId(is);
  	
     	if(groupId == 0){
-    		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=%s", LoginInfo.username));
+    		is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=%s", ApplicationState.username));
     		groupId = xmlParser.parseGroupId(is);
     	}	
     	
@@ -261,11 +261,11 @@ public class MainActivity extends Activity {
 //    	
     	// put all info into intent
  	
-    	LoginInfo.groupId = groupId;
-    	LoginInfo.cafeName = cafe.name;
-    	LoginInfo.cafeLocation = new Location("cafe");
-    	LoginInfo.cafeLocation.setLatitude(cafe.location.getLat());
-    	LoginInfo.cafeLocation.setLongitude(cafe.location.getLon());	
+    	ApplicationState.groupId = groupId;
+    	ApplicationState.cafeName = cafe.name;
+    	ApplicationState.cafeLocation = new Location("cafe");
+    	ApplicationState.cafeLocation.setLatitude(cafe.location.getLat());
+    	ApplicationState.cafeLocation.setLongitude(cafe.location.getLon());	
     	Log.d("","set group info");
     	
     	Intent intent = new Intent(this, GroupStatusActivity.class);   	
@@ -327,7 +327,7 @@ public class MainActivity extends Activity {
 		lon = location.getLongitude();
 
 		// update location
-		inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/UpdateLocation?username=%s&lat=%f&lon=%f", LoginInfo.username, lat, lon));
+		inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/UpdateLocation?username=%s&lat=%f&lon=%f", ApplicationState.username, lat, lon));
 		
 		Log.d("", "lat: " + lat + ", lon: " + lon);
 	}

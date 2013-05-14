@@ -74,9 +74,11 @@ public class XMLWriter {
 		StringBuilder sb = new StringBuilder();
 
 		OpenTag(sb, "result");
+		OpenTag(sb, "friendLocations");
 		for(String username: locations.keySet()){
 			Member(sb, username, locations.get(username));
 		}
+		CloseTag(sb, "friendLocations");
 		CloseTag(sb, "result");
 
 		System.out.println(sb.toString());

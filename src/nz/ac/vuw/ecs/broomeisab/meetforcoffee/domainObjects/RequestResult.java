@@ -1,4 +1,4 @@
-package nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode;
+package nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects;
 
 public class RequestResult {
 

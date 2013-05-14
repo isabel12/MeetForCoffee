@@ -18,7 +18,7 @@ import android.util.Log;
  * @author Izzi
  *
  */
-public class FeedInputStreamLoader {
+public class InputStreamLoader {
 
 
 	/**

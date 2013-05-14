@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Cafe;
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Group;
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.Location;
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.RequestResult;
-import nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode.User;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Cafe;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Group;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Location;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.RequestResult;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.User;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;

@@ -1,4 +1,4 @@
-package nz.ac.vuw.ecs.broomeisab.meetforcoffee.serverCode;
+package nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects;
 
 
 import java.io.Serializable;
@@ -9,7 +9,6 @@ public class Cafe implements Serializable {
 	public Location location;
 	public String name;
 	public String id;
-	private static int tabIndent;
 
 	public Cafe(String id, String name, Location location){
 		this.id = id;
@@ -27,8 +26,4 @@ public class Cafe implements Serializable {
 				+ "]";
 	}
 	
-	public String toXML(){
-		return XMLWriter.GetCafe(this);
-	}	
-
 }
