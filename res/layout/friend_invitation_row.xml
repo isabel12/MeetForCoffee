@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <TextView
+        android:id="@+id/friend_invitation_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+    <Button
+        android:id="@+id/accept_friend_invitation_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="acceptFriend"
+        android:text="Accept"
+		 />
+    <Button
+        android:id="@+id/decline_friend_invitation_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="declineFriend"
+        android:text="Decline"
+		 />
+    
+</LinearLayout>

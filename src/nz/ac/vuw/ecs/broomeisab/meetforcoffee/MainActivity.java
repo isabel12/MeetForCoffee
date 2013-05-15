@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Cafe;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Group;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Invitations;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.RequestResult;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.User;
 
 import android.location.Criteria;
@@ -18,7 +21,9 @@ import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.R.xml;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -28,6 +33,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -112,22 +118,7 @@ public class MainActivity extends Activity {
     	// change the screen
     	setContentView(R.layout.main_menu);
     	
-    	// get group id from the server
-    	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=" + ApplicationState.username);
-    	ApplicationState.groupId = xmlParser.parseGroupId(is);
-    	
-    	if(ApplicationState.groupId == 0){
-    	
-	    	// disable the view status button
-			Button viewGroupStatusButton = (Button)findViewById(R.id.view_group_status_button);
-			viewGroupStatusButton.setClickable(false);
-			viewGroupStatusButton.setEnabled(false);
-    	} else {
-	    	// disable the invite button
-			Button inviteForCoffeeButton = (Button)findViewById(R.id.invite_for_coffee_button);
-			inviteForCoffeeButton.setClickable(false);
-			inviteForCoffeeButton.setEnabled(false);	
-    	}
+
 
     	refreshPage();
 
@@ -160,6 +151,46 @@ public class MainActivity extends Activity {
     	addFriend();	
     }
     
+    public void refreshPage(View view){
+    	refreshPage();
+    }
+    
+    public void declineFriendRequest(View view){
+    	
+    }
+    
+    public void declineGroupRequest(View view){
+    	
+    	
+    }
+    
+    public void acceptFriendRequest(View view){
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AcceptFriendRequest?username=%s&toAccept=%s", ApplicationState.username, ApplicationState.invites.friendInvitations.get(0)));
+    	RequestResult result = xmlParser.parseRequestResult(is);
+    	
+    	new AlertDialog.Builder(this).setMessage(result.message).show(); 
+    	refreshPage();
+    }
+    
+    public void acceptGroupRequest(View view){
+    	Group g = ApplicationState.invites.groupInvitations.get(0);
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AcceptGroupInvitation?username=%s&groupID=%d", ApplicationState.username, g.groupId));
+    	RequestResult result = xmlParser.parseRequestResult(is);
+    	
+    	new AlertDialog.Builder(this).setMessage(result.message).show(); 
+    	
+    	// set so application knows you are attending
+    	if(result.success){
+    		ApplicationState.groupId = g.groupId;
+    		ApplicationState.cafeName = g.cafe.name;
+    		ApplicationState.cafeLocation = new Location("cafe");
+    		ApplicationState.cafeLocation.setLatitude(g.cafe.location.getLat());
+    		ApplicationState.cafeLocation.setLongitude(g.cafe.location.getLon());    			
+    	}
+    	
+    	refreshPage();
+    }
+    
     //======================================================
     // private methods to help with main menu page
     //======================================================
@@ -175,17 +206,31 @@ public class MainActivity extends Activity {
     	}
     	
     	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/AddFriend?username=%s&toInvite=%s", ApplicationState.username, username));
-    	//TODO parse input
-    	try {
-			is.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+    	RequestResult result = xmlParser.parseRequestResult(is);
+    	
+    	new AlertDialog.Builder(this).setMessage(result.message).show();
+    	
     }
     
-    private void refreshPage(){	
+    private void refreshPage(){	   	
+    	// get group id from the server
+    	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=" + ApplicationState.username);
+    	ApplicationState.groupId = xmlParser.parseGroupId(is);
+    	
+    	if(ApplicationState.groupId == 0){	
+	    	// disable the view status button
+			Button viewGroupStatusButton = (Button)findViewById(R.id.view_group_status_button);
+			viewGroupStatusButton.setClickable(false);
+			viewGroupStatusButton.setEnabled(false);
+    	} else {
+	    	// disable the invite button
+			Button inviteForCoffeeButton = (Button)findViewById(R.id.invite_for_coffee_button);
+			inviteForCoffeeButton.setClickable(false);
+			inviteForCoffeeButton.setEnabled(false);	
+    	}
+    	 	 	
     	// get friends
-    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetAllFriendsLocations?username=%s", ApplicationState.username));
+    	is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetAllFriendsLocations?username=%s", ApplicationState.username));
     	List<User> friends = xmlParser.parseFriendLocations(is);
     	
     	// display friends
@@ -197,8 +242,46 @@ public class MainActivity extends Activity {
     	ArrayAdapter<String> friendsAdapter =
         		new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, friendList);
         	ListView myList = (ListView)findViewById(R.id.friends_list);
-            myList.setAdapter(friendsAdapter);
-			
+            myList.setAdapter(friendsAdapter);	
+            
+            
+        // get invitations
+        is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetInvitationUpdates?username=%s", ApplicationState.username));
+        ApplicationState.invites = xmlParser.parseInvitations(is);
+        Log.d("", "friends requests: " + ApplicationState.invites.friendInvitations.size() + ", group invites: " + ApplicationState.invites.groupInvitations.size());
+        
+        // display friend requests
+        TextView friendInvitation = (TextView)findViewById(R.id.friend_request);
+        if(ApplicationState.invites.friendInvitations.size() != 0){  	
+        	friendInvitation.setText(ApplicationState.invites.friendInvitations.get(0) + " wants to be friends");
+        } else {
+        	friendInvitation.setText("No friend requests");
+        	Button acceptButton = (Button)findViewById(R.id.accept_friend_request_button);
+        	acceptButton.setClickable(false);
+        	acceptButton.setEnabled(false);
+        	
+        	Button declineButton = (Button)findViewById(R.id.decline_friend_request_button);
+        	declineButton.setClickable(false);
+        	declineButton.setEnabled(false);
+        }
+        
+        
+        // display group requests
+        TextView groupInvitation = (TextView)findViewById(R.id.group_request);
+        if(ApplicationState.invites.groupInvitations.size() != 0){  
+        	Group g = ApplicationState.invites.groupInvitations.get(0);
+        	groupInvitation.setText(g.groupInitiator + " wants to meet at " + g.cafe.name );
+        } else {
+        	friendInvitation.setText("No meeting requests");
+        	Button acceptButton = (Button)findViewById(R.id.accept_group_request_button);
+        	acceptButton.setClickable(false);
+        	acceptButton.setEnabled(false);
+        	
+        	Button declineButton = (Button)findViewById(R.id.decline_group_request_button);
+        	declineButton.setClickable(false);
+        	declineButton.setEnabled(false);
+        }
+          
     }
     
     

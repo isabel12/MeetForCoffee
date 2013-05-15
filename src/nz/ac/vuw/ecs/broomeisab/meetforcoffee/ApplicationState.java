@@ -1,5 +1,6 @@
 package nz.ac.vuw.ecs.broomeisab.meetforcoffee;
 
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Invitations;
 import android.location.Location;
 
 public class ApplicationState {
@@ -18,5 +19,7 @@ public class ApplicationState {
 			return 30000; // 30 seconds  
 		 }			
 	}
+	
+	public static Invitations invites;
 	
 }

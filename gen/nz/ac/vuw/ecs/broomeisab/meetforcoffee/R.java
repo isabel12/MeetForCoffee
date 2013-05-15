@@ -24,40 +24,47 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int action_settings=0x7f08001a;
+        public static final int accept_friend_invitation_button=0x7f08000d;
+        public static final int accept_friend_request_button=0x7f08001b;
+        public static final int accept_group_request_button=0x7f08001e;
+        public static final int action_settings=0x7f080020;
         public static final int attending_list=0x7f080004;
         public static final int attending_list_title=0x7f080003;
         public static final int back_to_main_menu_button=0x7f08000b;
-        public static final int button1=0x7f080010;
-        public static final int cafe_name=0x7f08000d;
+        public static final int button1=0x7f080013;
+        public static final int cafe_name=0x7f080010;
         public static final int cafes_in_area=0x7f080008;
         public static final int cafes_spinner=0x7f080009;
-        public static final int editTextPassword=0x7f08000f;
-        public static final int editTextUsername=0x7f08000e;
-        public static final int enter_username=0x7f080015;
-        public static final int friend_invitations_list=0x7f080017;
-        public static final int friend_invitations_title=0x7f080016;
+        public static final int decline_friend_invitation_button=0x7f08000e;
+        public static final int decline_friend_request_button=0x7f08001c;
+        public static final int decline_group_request_button=0x7f08001f;
+        public static final int editTextPassword=0x7f080012;
+        public static final int editTextUsername=0x7f080011;
+        public static final int enter_username=0x7f080019;
+        public static final int friend_invitation_name=0x7f08000c;
+        public static final int friend_request=0x7f08001a;
         public static final int friends_in_area=0x7f080006;
-        public static final int friends_list=0x7f080014;
+        public static final int friends_list=0x7f080018;
         public static final int friends_spinner=0x7f080007;
-        public static final int friends_title=0x7f080013;
+        public static final int friends_title=0x7f080017;
         public static final int group_information_title=0x7f080000;
-        public static final int group_invitations_list=0x7f080019;
-        public static final int group_invitations_title=0x7f080018;
-        public static final int invite_for_coffee_button=0x7f080011;
+        public static final int group_request=0x7f08001d;
+        public static final int invite_for_coffee_button=0x7f080014;
         public static final int invite_to_group_button=0x7f08000a;
         public static final int leave_group_button=0x7f080005;
-        public static final int organiser=0x7f08000c;
+        public static final int organiser=0x7f08000f;
         public static final int pending_list=0x7f080002;
         public static final int pending_list_title=0x7f080001;
-        public static final int view_group_status_button=0x7f080012;
+        public static final int refresh_main_menu_button=0x7f080016;
+        public static final int view_group_status_button=0x7f080015;
     }
     public static final class layout {
         public static final int activity_group_status=0x7f030000;
         public static final int activity_invite=0x7f030001;
-        public static final int group_invitation=0x7f030002;
-        public static final int login=0x7f030003;
-        public static final int main_menu=0x7f030004;
+        public static final int friend_invitation_row=0x7f030002;
+        public static final int group_invitation=0x7f030003;
+        public static final int login=0x7f030004;
+        public static final int main_menu=0x7f030005;
     }
     public static final class menu {
         public static final int group_status=0x7f070000;

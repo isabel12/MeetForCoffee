@@ -382,19 +382,24 @@ public class MeetForCoffeeServer {
 
 		System.out.println(String.format("InviteFriendToMeet(%s, %s, %s, %s, %f, %f)", username, toInvite, cafeID, cafeName, cafeLat, cafeLon));
 		
-		// make sure you don't already own a group
-		for(Group g: activeGroups.values()){
-			if (g.groupInitiator.equals(username)){
-				return XMLWriter.PerformActionResult("You already have an active group: " + g.groupId, false);
-			}
-		}
-
 		// make sure you are friends
 		if(!friends.get(username).contains(toInvite) || !friends.get(toInvite).contains(username)){
 			return XMLWriter.PerformActionResult("You are not friends with " + toInvite, false);
 		}
-
 		
+		for(Group g: activeGroups.values()){
+			// make sure you aren't attending a group already
+			if (g.attending.contains(username)){
+				return XMLWriter.PerformActionResult("You are already attending a group: " + g.groupId, false);
+			}
+			
+			// make sure they aren't attending a group already
+			if (g.attending.contains(toInvite)){
+				return XMLWriter.PerformActionResult(toInvite + " is already attending a group: " + g.groupId, false);
+			}
+		}
+		
+		// get cafe name
 		try {
 			cafeName = URLDecoder.decode(cafeName, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
@@ -471,13 +476,15 @@ public class MeetForCoffeeServer {
 		if (g.pending.contains(username)){
 			g.pending.remove(username);
 			g.attending.add(username);
+			this.groupInvitations.get(username).remove(g);
 			return XMLWriter.PerformActionResult("You are now attending group " + groupID, true);
 		}
 
 		// if you are in declined
 		if (g.declined.contains(username)){
 			g.declined.remove(username);
-			g.attending.add(username);
+			g.attending.add(username);		
+			this.groupInvitations.get(username).remove(g);
 			return XMLWriter.PerformActionResult("You are now attending group " + groupID, true);
 		}
 
@@ -486,21 +493,86 @@ public class MeetForCoffeeServer {
 
 	}
 
-	public String CancelGroup(String username, int groupID){
-		System.out.println(String.format("CancelGroup(%s, %d)", username, groupID));
+	
+	public String DeclineGroupInvitation(String username, int groupID){
+		
+		Group group = activeGroups.get(groupID);
+		
+		if (group == null)
+			return XMLWriter.PerformActionResult("No active group with that id: " + groupID, false);
+		
+		if(!group.pending.contains(username))
+			return XMLWriter.PerformActionResult("You haven't been invited to that group. ", false);
+		
+		
+		// remove from group invitations
+		groupInvitations.get(username).remove(group);
+
+		// move into correct place
+		group.pending.remove(username);
+		group.declined.add(username);
+		
+		WriteFile(ACTIVEGROUPS_FILENAME, activeGroupsFile, activeGroups);
+		WriteFile(GROUPINVITATIONS_FILENAME, groupInvitationsFile, groupInvitations);
+			
+		return XMLWriter.PerformActionResult("Declined group invitation", true);
+	}
+	
+	
+	public String DeclineFriendRequest(String username, String toDecline){
+		
+		// get set of people wanting to be your friend
+		Set<String> myFriendRequests = friendRequests.get(username);
+		if(myFriendRequests == null){
+			myFriendRequests = new HashSet<String>();
+			friendRequests.put(username, myFriendRequests);
+		}
+		
+		// check that you have been invited
+		if (!myFriendRequests.contains(toDecline)){
+			return XMLWriter.PerformActionResult(String.format("There is no invitation from %s to be friends",toDecline), false);
+		}
+
+		// remove from friendInvitations
+		myFriendRequests.remove(toDecline);
+
+		// remove from friendRequests
+		Set<String> invitations = friendInvitations.get(toDecline);
+		boolean wasInvited = invitations != null && invitations.remove(username);
+		if(!wasInvited){
+			return XMLWriter.PerformActionResult(String.format("Invalid state. %s's invitation wasn't properly recorded", toDecline),false);
+		}
+		
+		WriteFile(FRIENDINVITATIONS_FILENAME, friendInvitationsFile, friendInvitations);
+		WriteFile(FRIENDREQUESTS_FILENAME, friendRequestsFile, friendRequests);
+		
+		return XMLWriter.PerformActionResult("Declined friendship with " + toDecline, true);
+	}
+	
+	
+	public String LeaveGroup(String username, int groupID){
+		System.out.println(String.format("LeaveGroup(%s, %d)", username, groupID));
 
 		Group group = activeGroups.get(groupID);
 		if(group == null){
 			return XMLWriter.PerformActionResult("Group could not be found", false);
 		}
 
+		if(!group.attending.contains(username)){
+			return XMLWriter.PerformActionResult("You are not attending the group", false);
+		}
+		
 		if(!group.groupInitiator.equals(username)){
-			return XMLWriter.PerformActionResult("You are not the group organiser", false);
+			group.attending.remove(username);
+			return XMLWriter.PerformActionResult("You have left the group", true);
 		}
 
+		// otherwise you initiated it.  cancel group 
 		activeGroups.remove(groupID);
-
-		return XMLWriter.PerformActionResult("Group cancelled", true);
+		
+		WriteFile(ACTIVEGROUPS_FILENAME, activeGroupsFile, activeGroups);
+		
+		return XMLWriter.PerformActionResult("Group cancelled", true);	
 	}
 
 
@@ -771,21 +843,16 @@ public class MeetForCoffeeServer {
 
 		MeetForCoffeeServer server = new MeetForCoffeeServer();
 
-		server.Register("bill");
-		server.Register("ben");
-		server.AddFriend("bill", "ben");
-		server.AcceptFriendRequest("ben", "bill");
+		server.AddTestData();
 		server.InviteFriendToMeet("bill", "ben", "sdfoij210394j", "Vic Books", -41.288610, 174.768405);
-		server.GetInvitationUpdates("ben");
-		server.AcceptGroupInvitation("ben", 1);	
-		server.GetActiveGroup("ben");
-		server.GetGroupStatus("ben", 1);
+		server.AcceptGroupInvitation("ben", 1);
+		server.LeaveGroup("ben", 1);
 		
-		server.UpdateLocation("ben", -41.288610, 174.768405); // kirk
-		server.UpdateLocation("bill", -41.292112, 174.766432);// fairly
-		server.GetAllFriendsLocations("ben");
-		server.GetAllFriendsLocations("bill");
-		server.GetCloseByCafes("ben");
+		server.GetGroupStatus("bill", 1);
+		server.LeaveGroup("bill", 1);
+		server.GetGroupStatus("bill", 1);
+
+		
 		server.DropTables();
 	}
 

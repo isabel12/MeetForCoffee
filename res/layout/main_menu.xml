@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+
+
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -19,6 +21,13 @@
         android:onClick="viewGroupStatus"
         android:text="View Group Status" />
     
+    <Button
+        android:id="@+id/refresh_main_menu_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="refreshPage"
+        android:text="Refresh" />
+    
 	<TextView 
 	    android:id="@+id/friends_title"
 	    android:layout_width="match_parent"
@@ -31,12 +40,13 @@
 	
 	 <ListView android:id="@+id/friends_list" 
     	android:layout_width="wrap_content" 
-    	android:layout_height="wrap_content"
+    	android:layout_height="0dp"
+    	android:layout_weight="1"
     	/>
 	 
 	 <LinearLayout 
 	    android:layout_width="match_parent"
-	    android:layout_height="match_parent"
+	    android:layout_height="wrap_content"
 	    android:orientation="horizontal">
     
 	    <EditText android:id="@+id/enter_username" 
@@ -51,37 +61,59 @@
 	        android:text="Add Friend" 
 	        android:onClick="addFriend"/>   
 	</LinearLayout>
-    
+ 
 	 
-	 
-	<TextView 
-	    android:id="@+id/friend_invitations_title"
+	<LinearLayout 
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
-	    android:text="Friend Invitations"
-	    android:textAppearance="?android:attr/textAppearanceMedium"
-	    android:background="#666666"
-	    android:textColor="#ffffff"
-	    />
-	
-	 <ListView android:id="@+id/friend_invitations_list" 
-    	android:layout_width="wrap_content" 
-    	android:layout_height="wrap_content"
-    	/>
-	 
-	<TextView 
-	    android:id="@+id/group_invitations_title"
+	    android:orientation="horizontal">
+    
+	    <TextView android:id="@+id/friend_request" 
+	        android:layout_weight="1"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+			/>
+	    
+	    <Button
+	        android:id="@+id/accept_friend_request_button"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Accept" 
+	        android:onClick="acceptFriendRequest"/>   
+	        
+	   	<Button
+	   	    android:id="@+id/decline_friend_request_button"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Decline" 
+	        android:onClick="declineFriendRequest"/> 
+	  </LinearLayout>  
+	   	
+	<LinearLayout 
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
-	    android:text="Group Invitations"
-	    android:textAppearance="?android:attr/textAppearanceMedium"
-	    android:background="#666666"
-	    android:textColor="#ffffff"
-	    />
+	    android:orientation="horizontal">
 	
-	 <ListView android:id="@+id/group_invitations_list" 
-    	android:layout_width="wrap_content" 
-    	android:layout_height="wrap_content"
-    	/>
-    
+	  <TextView android:id="@+id/group_request" 
+	        android:layout_weight="1"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+			/>
+	    
+	    <Button
+	        android:id="@+id/accept_group_request_button"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Accept" 
+	        android:onClick="acceptGroupRequest"/>   
+	        
+	   	<Button
+	   	    android:id="@+id/decline_group_request_button"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Decline" 
+	        android:onClick="declineGroupRequest"/> 
+	    
+	</LinearLayout>
+ 
 </LinearLayout>

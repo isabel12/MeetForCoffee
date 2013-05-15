@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Cafe;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Group;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Invitations;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Location;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.RequestResult;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.User;
@@ -51,8 +52,25 @@ public class XMLPullFeedParser {
 	public static final String PENDING = "pending";
 	public static final String DECLINED = "declined";
 	public static final String LOCATION = "location";
+	public static final String INVITATION_UPDATES = "invitationUpdates";
 		
 
+	
+	public Invitations parseInvitations(InputStream inputStream){
+		try {
+			Log.d("", "parsing invitations");
+			AsyncTask<InputStream, Void, Invitations> parseTask = new ParseInvitationsTask().execute(inputStream);
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
+			
+	}
+	
 
 	public List<User> parseFriendLocations(InputStream inputStream){
 		
@@ -114,10 +132,168 @@ public class XMLPullFeedParser {
 			// TODO Auto-generated catch block
 			throw new RuntimeException(e);
 		}
+			
+	}
+	
+	
+	public RequestResult parseRequestResult(InputStream inputStream){	
+		try {
+			Log.d("", "parsing friendLocations");
+			AsyncTask<InputStream, Void, RequestResult> parseTask = new ParseRequestResultTask().execute(inputStream);
+			return parseTask.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
+	
+	//=================================================================
+	// Async tasks
+	//=================================================================
+	
+	
+	private class ParseInvitationsTask extends ParsingAsyncTask<InputStream, Void, Invitations>{
+
+		@Override
+		protected Invitations doInBackground(InputStream... params) {
+			Invitations invitations = null;
+			
+			// get parser
+			XmlPullParserFactory factory;
+			XmlPullParser parser = null; 
+			try {
+				factory = XmlPullParserFactory.newInstance();
+				parser = factory.newPullParser();
+			} catch (XmlPullParserException e1) {
+				e1.printStackTrace();
+			}
+			
+			
+			try {
+				// set input
+				parser.setInput(params[0], null);
+				
+				boolean done = false;
+				boolean friendRequests = false;
+				boolean groupInvitations = false;
+				
+				int eventType = parser.getEventType();
+				while (eventType != XmlPullParser.END_DOCUMENT && !done){
+					String name = null;				
+					switch(eventType){
+						case XmlPullParser.START_TAG:
+							name = parser.getName();
+							if(name.equalsIgnoreCase(INVITATION_UPDATES)){
+								invitations = new Invitations();
+							}
+							
+							else if (name.equalsIgnoreCase(FRIEND_REQUESTS)){
+								friendRequests = true;
+							}
+							
+							else if (friendRequests && name.equalsIgnoreCase(MEMBER)){
+								invitations.friendInvitations.add(ParseMemberUsername(parser));
+							}
+							
+							else if (name.equalsIgnoreCase(GROUP_INVITATIONS)){
+								groupInvitations = true;
+							}
+							
+							else if (groupInvitations && name.equalsIgnoreCase(GROUP)){
+								invitations.groupInvitations.add(ParseGroup(parser));
+							}
+							break;
+						case XmlPullParser.END_TAG:
+							name = parser.getName();
+							if(name.equalsIgnoreCase(DOCUMENT)){
+								done = true;					
+							} 
+							
+							else if (name.equalsIgnoreCase(FRIEND_REQUESTS)){
+								friendRequests = false;
+							}
+							
+							else if (name.equalsIgnoreCase(GROUP_INVITATIONS)){
+								groupInvitations = false;
+							}
+							break;
+					}
+					eventType = parser.next();		
+				}
+							
+			} catch (XmlPullParserException e) {
+				e.printStackTrace();
+			} catch (IOException e){
+				e.printStackTrace();
+			}
+			
+			return invitations;
+			
+		}
 		
 		
 	}
 	
+	private class ParseRequestResultTask extends ParsingAsyncTask<InputStream, Void, RequestResult>{
+
+		@Override
+		protected RequestResult doInBackground(InputStream... arg0) {
+			RequestResult result = null;
+			
+			// get parser
+			XmlPullParserFactory factory;
+			XmlPullParser parser = null; 
+			try {
+				factory = XmlPullParserFactory.newInstance();
+				parser = factory.newPullParser();
+			} catch (XmlPullParserException e1) {
+				e1.printStackTrace();
+			}
+			
+			
+			try {
+				// set input
+				parser.setInput(arg0[0], null);
+				
+				boolean done = false;
+				
+				int eventType = parser.getEventType();
+				while (eventType != XmlPullParser.END_DOCUMENT && !done){
+					String name = null;				
+					switch(eventType){
+						case XmlPullParser.START_TAG:
+							name = parser.getName();
+							if(name.equalsIgnoreCase(REQUEST_RESULT)){
+								result = ParseRequestResult(parser);
+							}
+							break;
+						case XmlPullParser.END_TAG:
+							name = parser.getName();
+							if(name.equalsIgnoreCase(DOCUMENT)){
+								done = true;					
+							}
+							break;
+					}
+					eventType = parser.next();		
+				}
+							
+			} catch (XmlPullParserException e) {
+				e.printStackTrace();
+			} catch (IOException e){
+				e.printStackTrace();
+			}
+			
+			return result;
+		}
+		
+		
+		
+	}
 	
 	
 	
