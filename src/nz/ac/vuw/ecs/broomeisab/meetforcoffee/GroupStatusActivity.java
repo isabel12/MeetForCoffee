@@ -10,6 +10,7 @@ import java.util.TimerTask;
 
 
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.Group;
+import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.RequestResult;
 import nz.ac.vuw.ecs.broomeisab.meetforcoffee.domainObjects.User;
 
 import android.location.Location;
@@ -17,6 +18,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -145,7 +147,8 @@ public class GroupStatusActivity extends Activity {
 	
 	private void checkActiveGroup(){
 		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=%s", ApplicationState.username));
-		if((ApplicationState.groupId = xmlParser.parseGroupId(is)) == 0){
+		if((ApplicationState.groupId = xmlParser.parseGroupId(is)) == 0){		    	
+	    	new AlertDialog.Builder(this).setMessage("Group is no longer active").show(); 	
 			leaveGroup();
 		}	
 	}
@@ -187,8 +190,9 @@ public class GroupStatusActivity extends Activity {
 	
 	public void leaveGroup(View view){
 		// ask to leave the group
-		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/CancelGroup?username=%s&groupID=%d", ApplicationState.username, ApplicationState.groupId));	
-		
+		InputStream is = feedLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/LeaveGroup?username=%s&groupID=%d", ApplicationState.username, ApplicationState.groupId));	
+    	RequestResult result = xmlParser.parseRequestResult(is);  	
+    	new AlertDialog.Builder(this).setMessage(result.message).show(); 
 		leaveGroup();
 	}
 	

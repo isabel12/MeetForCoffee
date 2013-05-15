@@ -156,12 +156,18 @@ public class MainActivity extends Activity {
     }
     
     public void declineFriendRequest(View view){
-    	
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/DeclineFriendRequest?username=%s&toDecline=%s", ApplicationState.username, ApplicationState.invites.friendInvitations.get(0)));
+    	RequestResult result = xmlParser.parseRequestResult(is);
+    	new AlertDialog.Builder(this).setMessage(result.message).show(); 
+    	refreshPage();	
     }
     
     public void declineGroupRequest(View view){
+    	InputStream is = inputStreamLoader.getFeedInputStream(String.format("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/DeclineGroupInvitation?username=%s&groupID=%d", ApplicationState.username, ApplicationState.invites.groupInvitations.get(0).groupId));
+    	RequestResult result = xmlParser.parseRequestResult(is);
     	
-    	
+    	new AlertDialog.Builder(this).setMessage(result.message).show(); 
+    	refreshPage();
     }
     
     public void acceptFriendRequest(View view){
@@ -252,15 +258,21 @@ public class MainActivity extends Activity {
         
         // display friend requests
         TextView friendInvitation = (TextView)findViewById(R.id.friend_request);
+        Button acceptButton = (Button)findViewById(R.id.accept_friend_request_button);
+        Button declineButton = (Button)findViewById(R.id.decline_friend_request_button);
         if(ApplicationState.invites.friendInvitations.size() != 0){  	
         	friendInvitation.setText(ApplicationState.invites.friendInvitations.get(0) + " wants to be friends");
+        	acceptButton.setClickable(true);
+        	acceptButton.setEnabled(true);
+        	declineButton.setClickable(true);
+        	declineButton.setEnabled(true);
         } else {
         	friendInvitation.setText("No friend requests");
-        	Button acceptButton = (Button)findViewById(R.id.accept_friend_request_button);
+        	
         	acceptButton.setClickable(false);
         	acceptButton.setEnabled(false);
         	
-        	Button declineButton = (Button)findViewById(R.id.decline_friend_request_button);
+        	
         	declineButton.setClickable(false);
         	declineButton.setEnabled(false);
         }
@@ -268,16 +280,23 @@ public class MainActivity extends Activity {
         
         // display group requests
         TextView groupInvitation = (TextView)findViewById(R.id.group_request);
+        acceptButton = (Button)findViewById(R.id.accept_group_request_button);
+        declineButton = (Button)findViewById(R.id.decline_group_request_button);
         if(ApplicationState.invites.groupInvitations.size() != 0){  
         	Group g = ApplicationState.invites.groupInvitations.get(0);
         	groupInvitation.setText(g.groupInitiator + " wants to meet at " + g.cafe.name );
-        } else {
-        	friendInvitation.setText("No meeting requests");
-        	Button acceptButton = (Button)findViewById(R.id.accept_group_request_button);
-        	acceptButton.setClickable(false);
-        	acceptButton.setEnabled(false);
         	
-        	Button declineButton = (Button)findViewById(R.id.decline_group_request_button);
+        	acceptButton.setClickable(true);
+        	acceptButton.setEnabled(true); 	
+        	
+        	declineButton.setClickable(true);
+        	declineButton.setEnabled(true);
+        } else {
+        	groupInvitation.setText("No meeting requests");
+        	
+        	acceptButton.setClickable(false);
+        	acceptButton.setEnabled(false); 	
+        	
         	declineButton.setClickable(false);
         	declineButton.setEnabled(false);
         }
