@@ -223,16 +223,20 @@ public class MainActivity extends Activity {
     	InputStream is = inputStreamLoader.getFeedInputStream("http://10.0.2.2:19871/axis2/services/MeetForCoffeeServer/GetActiveGroup?username=" + ApplicationState.username);
     	ApplicationState.groupId = xmlParser.parseGroupId(is);
     	
+		Button viewGroupStatusButton = (Button)findViewById(R.id.view_group_status_button);
+		Button inviteButton = (Button)findViewById(R.id.invite_for_coffee_button);
     	if(ApplicationState.groupId == 0){	
 	    	// disable the view status button
-			Button viewGroupStatusButton = (Button)findViewById(R.id.view_group_status_button);
 			viewGroupStatusButton.setClickable(false);
 			viewGroupStatusButton.setEnabled(false);
+			inviteButton.setClickable(true);
+			inviteButton.setEnabled(true);		
     	} else {
 	    	// disable the invite button
-			Button inviteForCoffeeButton = (Button)findViewById(R.id.invite_for_coffee_button);
-			inviteForCoffeeButton.setClickable(false);
-			inviteForCoffeeButton.setEnabled(false);	
+			viewGroupStatusButton.setClickable(true);
+			viewGroupStatusButton.setEnabled(true);
+			inviteButton.setClickable(false);
+			inviteButton.setEnabled(false);	
     	}
     	 	 	
     	// get friends
